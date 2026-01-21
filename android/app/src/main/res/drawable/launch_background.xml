@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Background color -->
+    <item android:drawable="@android:color/white" />
+
+    <!-- Centered launcher icon with smaller size -->
+    <item>
+        <inset
+           android:insetLeft="80dp"
+    android:insetRight="80dp"
+    android:insetTop="200dp"
+    android:insetBottom="200dp">
+            <bitmap
+                android:gravity="center"
+                android:tileMode="disabled"
+                android:src="@drawable/loader_image" />
+        </inset>
+    </item>
+
+</layer-list>

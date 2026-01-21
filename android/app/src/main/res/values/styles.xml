@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <!-- Make window background transparent -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- Make window translucent -->
+        <item name="android:windowIsTranslucent">true</item>
+        <!-- Disable force dark mode -->
+        <item name="android:forceDarkAllowed">false</item>
+        <!-- Optional: Keep your other settings -->
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources> 
