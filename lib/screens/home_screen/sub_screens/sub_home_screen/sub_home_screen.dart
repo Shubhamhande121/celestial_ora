@@ -8,6 +8,7 @@ import 'package:organic_saga/components/section_header.dart';
 import 'package:organic_saga/constants/baseUrl.dart';
 import 'package:organic_saga/constants/constants.dart';
 import 'package:organic_saga/screens/home_screen/home_controller.dart';
+import 'package:organic_saga/screens/home_screen/search_screens/search_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/notifications/notification_controller.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/notifications/notifications.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
@@ -200,7 +201,25 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
 
     return GestureDetector(
       onTap: () {
-        // Handle search tap
+        // ✅ FIX: Use showModalBottomSheet instead of Get.to
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.9,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.r),
+                  topRight: Radius.circular(20.r),
+                ),
+              ),
+              child: SearchBottomSheet(),
+            );
+          },
+        );
       },
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: screenWidth / 24.35),
@@ -395,7 +414,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       children: [
         SectionHeader(
           screenWidth: MediaQuery.of(context).size.width,
-          title: "Shop by Category",
+          title: "Shop From Wallet",
           onPressed: () {},
         ),
         SizedBox(

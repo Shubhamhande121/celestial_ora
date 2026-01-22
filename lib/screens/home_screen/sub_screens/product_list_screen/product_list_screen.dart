@@ -38,7 +38,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void initState() {
     super.initState();
     _loadProducts();
-    
+
     // ✅ FIX: Add scroll listener for pagination
     _scrollController.addListener(_onScroll);
   }
@@ -50,7 +50,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels == 
+    if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
       _loadMoreProducts();
     }
@@ -69,7 +69,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         'POST',
         Uri.parse('$baseUrl/Auth/product_list_fetch'),
       );
-      
+
       // ✅ FIX: Add pagination parameters
       request.fields.addAll({
         'category_id': widget.categoryDetails['id'],
@@ -90,7 +90,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           } else {
             _productList = newProducts;
           }
-          
+
           // Check if there are more products
           _hasMore = newProducts.length == _itemsPerPage;
           if (loadMore) _currentPage++;
@@ -108,7 +108,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<void> _loadMoreProducts() async {
     if (isLoadingMore || !_hasMore) return;
-    
+
     await _loadProducts(loadMore: true);
   }
 
@@ -153,16 +153,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
             },
             icon: const Icon(Icons.search, color: Colors.white),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FilterScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.tune, color: Colors.white),
-          ),
+          // IconButton(
+          //   onPressed: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(
+          //         builder: (context) => const FilterScreen(),
+          //       ),
+          //     );
+          //   },
+          //   icon: const Icon(Icons.tune, color: Colors.white),
+          // ),
         ],
       ),
       body: RefreshIndicator(
@@ -196,7 +196,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           sliver: SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 0.85,
+              childAspectRatio: 0.70,
               mainAxisSpacing: 12.w,
               crossAxisSpacing: 12.w,
             ),
@@ -329,61 +329,51 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
 
             // Product Info
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: EdgeInsets.all(8.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Product Name
-                    Text(
-                      product["productname"]?.toString() ?? "Product",
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12.sp,
-                        height: 1.3,
+            Padding(
+              padding: EdgeInsets.all(8.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product["productname"]?.toString() ?? "Product",
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12.sp,
+                      height: 1.3,
+                    ),
+                  ),
+                  SizedBox(height: 6.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (variant != null)
+                            Text(
+                              "$indianRupeeSymbol ${variant['special_price'] ?? variant['price']}",
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          if (!hasStock)
+                            Text(
+                              "Out of Stock",
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.red,
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
-
-                    // Price and Add Button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Price
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (variant != null)
-                              Text(
-                                "$indianRupeeSymbol ${variant['special_price'] ?? variant['price'] ?? '0'}",
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            if (!hasStock)
-                              Text(
-                                "Out of Stock",
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: Colors.red,
-                                ),
-                              ),
-                          ],
-                        ),
-
-                        // Add to Cart Button
-                        if (hasStock && productId != null && variantId != null)
-                          _buildAddToCartButton(productId, variantId),
-                      ],
-                    ),
-                  ],
-                ),
+                      if (hasStock && productId != null && variantId != null)
+                        _buildAddToCartButton(productId, variantId),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
@@ -411,7 +401,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             children: [
               GestureDetector(
                 onTap: () {
-                  cartController.updateQuantity(productId, variantId, quantity - 1);
+                  cartController.updateQuantity(
+                      productId, variantId, quantity - 1);
                 },
                 child: Icon(
                   Icons.remove,
@@ -429,7 +420,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  cartController.updateQuantity(productId, variantId, quantity + 1);
+                  cartController.updateQuantity(
+                      productId, variantId, quantity + 1);
                 },
                 child: Icon(
                   Icons.add,
@@ -469,7 +461,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       itemCount: 6, // Show only 6 shimmer items
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.70,
         mainAxisSpacing: 12.w,
         crossAxisSpacing: 12.w,
       ),

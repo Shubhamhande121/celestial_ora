@@ -41,170 +41,173 @@ class SearchBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     CartController cartController = Get.find();
 
-    return Container(
-      height: 0.9.sh, // 90% of screen height
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            // small handle bar for bottom sheet
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // search bar
-            TextField(
-              onChanged: (value) => getSearch(value),
-              decoration: InputDecoration(
-                hintText: "Search for products",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        height: 0.9.sh, // 90% of screen height
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              // small handle bar for bottom sheet
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            // search results
-            Expanded(
-              child: Obx(() {
-                if (isLoading.value) {
-                  return GridView.builder(
-                    controller: scrollController,
-                    itemCount: 6,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.68,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemBuilder: (context, index) => shimmerCard(),
-                  );
-                } else {
-                  return GridView.builder(
-                    controller: scrollController,
-                    itemCount: listOfSearch.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.80,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemBuilder: (context, index) {
-                      final product = listOfSearch[index];
-                      final variants = product["variant"] ?? [];
-                      final variant = variants.isNotEmpty ? variants[0] : null;
-
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => ProductDisplayScreen(
-                              id: product["productid"],
+              // search bar
+              TextField(
+                onChanged: (value) => getSearch(value),
+                decoration: InputDecoration(
+                  hintText: "Search for products",
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // search results
+              Expanded(
+                child: Obx(() {
+                  if (isLoading.value) {
+                    return GridView.builder(
+                      controller: scrollController,
+                      itemCount: 6,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.68,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemBuilder: (context, index) => shimmerCard(),
+                    );
+                  } else {
+                    return GridView.builder(
+                      controller: scrollController,
+                      itemCount: listOfSearch.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.80,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemBuilder: (context, index) {
+                        final product = listOfSearch[index];
+                        final variants = product["variant"] ?? [];
+                        final variant = variants.isNotEmpty ? variants[0] : null;
+      
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => ProductDisplayScreen(
+                                id: product["productid"],
+                              ),
+                            ));
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: const Color(0xFFE2E2E2)),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ));
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE2E2E2)),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(12),
-                                      topRight: Radius.circular(12)),
-                                  child: Image.network(
-                                    baseProductImageUrl +
-                                        (product["productimage"] ?? ""),
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Image.asset(
-                                      "assets/images/splash_3.png",
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12)),
+                                    child: Image.network(
+                                      baseProductImageUrl +
+                                          (product["productimage"] ?? ""),
+                                      width: double.infinity,
                                       fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Image.asset(
+                                        "assets/images/splash_3.png",
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      product["productname"] ??
-                                          "Unnamed Product",
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 13),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          variant != null
-                                              ? "$indianRupeeSymbol ${variant['special_price']}"
-                                              : "Out of Stock",
-                                          style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        if (variant != null)
-                                          InkWell(
-                                            onTap: () {
-                                              Get.find<CartController>()
-                                                  .addToCart(
-                                                      product["productid"],
-                                                      1,
-                                                      variant["id"],
-                                                      context);
-                                            },
-                                            child: Container(
-                                              height: 26,
-                                              width: 26,
-                                              decoration: BoxDecoration(
-                                                color: primaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              child: const Icon(
-                                                Icons.add,
-                                                size: 16,
-                                                color: Colors.white,
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product["productname"] ??
+                                            "Unnamed Product",
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 13),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            variant != null
+                                                ? "$indianRupeeSymbol ${variant['special_price']}"
+                                                : "Out of Stock",
+                                            style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          if (variant != null)
+                                            InkWell(
+                                              onTap: () {
+                                                Get.find<CartController>()
+                                                    .addToCart(
+                                                        product["productid"],
+                                                        1,
+                                                        variant["id"],
+                                                        context);
+                                              },
+                                              child: Container(
+                                                height: 26,
+                                                width: 26,
+                                                decoration: BoxDecoration(
+                                                  color: primaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  size: 16,
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                }
-              }),
-            ),
-          ],
+                        );
+                      },
+                    );
+                  }
+                }),
+              ),
+            ],
+          ),
         ),
       ),
     );
