@@ -14,11 +14,13 @@ import 'package:organic_saga/screens/home_screen/home_controller.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/promocode/promocode.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/sub_screens/order_accepted.dart';
-import 'package:organic_saga/screens/payments/phone_pe_payment_screen.dart';
+
 import 'package:organic_saga/shared_pref/shared_pref.dart';
 
 import '../../../../../constants/constants.dart';
-import 'package:phone_pe_pg/phone_pe_pg.dart';
+import 'package:phone_pe_pg/phone_pe_pg.dart' hide PaymentStatus;
+
+import '../../../../payments/phone_pay.dart';
 
 class OrderSummary extends StatefulWidget {
   OrderSummary({Key? key, required this.orderList}) : super(key: key);
@@ -94,29 +96,81 @@ class _OrderSummaryState extends State<OrderSummary> {
     saltIndex: "1",
   );
 
-  PaymentRequest _paymentRequest({String? merchantCallBackScheme}) {
+  Map<String, dynamic> _paymentRequest({String? merchantCallBackScheme}) {
     String generateRandomString(int len) {
       const chars =
           'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-      Random rnd = Random();
-      var s = String.fromCharCodes(Iterable.generate(
-          len, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
-      return s;
+      final rnd = Random();
+      return String.fromCharCodes(
+        Iterable.generate(
+          len,
+          (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
+        ),
+      );
     }
 
-    PaymentRequest paymentRequest = PaymentRequest(
-      amount: 100,
-      paymentInstrument: PayPagePaymentInstrument(),
-      callbackUrl: "https://webhook.site/55d95b9b-bec9-491e-b257-cbaf0ff7aa7e",
-      deviceContext: DeviceContext.getDefaultDeviceContext(
-          merchantCallBackScheme: merchantCallBackScheme),
-      merchantId: "PGTESTPAYUAT",
-      merchantTransactionId: generateRandomString(10).toUpperCase(),
-      merchantUserId: generateRandomString(8).toUpperCase(),
-      mobileNumber: "9769364928",
-    );
-    return paymentRequest;
+    return {
+      "merchantId": "PGTESTPAYUAT",
+      "merchantTransactionId": generateRandomString(10).toUpperCase(),
+      "merchantUserId": generateRandomString(8).toUpperCase(),
+      "amount": 100, // paise (₹1)
+      "callbackUrl":
+          "https://webhook.site/55d95b9b-bec9-491e-b257-cbaf0ff7aa7e",
+      "mobileNumber": "9769364928",
+      "paymentInstrument": {
+        "type": "PAY_PAGE",
+      },
+    };
   }
+
+  // PaymentRequest _paymentRequest({String? merchantCallBackScheme}) {
+  //   String generateRandomString(int len) {
+  //     const chars =
+  //         'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  //     Random rnd = Random();
+  //     return String.fromCharCodes(
+  //       Iterable.generate(
+  //           len, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))),
+  //     );
+  //   }
+
+  //   return PaymentRequest(
+  //     amount: 100, // ₹1.00 (amount in paise)
+  //     paymentInstrument: PayPagePaymentInstrument(),
+  //     callbackUrl: "https://webhook.site/55d95b9b-bec9-491e-b257-cbaf0ff7aa7e",
+  //     deviceContext: DeviceContext.getDefaultDeviceContext(
+  //       merchantCallBackScheme: merchantCallBackScheme,
+  //     ),
+  //     merchantId: "PGTESTPAYUAT",
+  //     merchantTransactionId: generateRandomString(10).toUpperCase(),
+  //     merchantUserId: generateRandomString(8).toUpperCase(),
+  //     mobileNumber: "9769364928",
+  //   );
+  // }
+
+  // PaymentRequest _paymentRequest({String? merchantCallBackScheme}) {
+  //   String generateRandomString(int len) {
+  //     const chars =
+  //         'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  //     Random rnd = Random();
+  //     var s = String.fromCharCodes(Iterable.generate(
+  //         len, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+  //     return s;
+  //   }
+
+  //   PaymentRequest paymentRequest = PaymentRequest(
+  //     amount: 100,
+  //     paymentInstrument: PayPagePaymentInstrument(),
+  //     callbackUrl: "https://webhook.site/55d95b9b-bec9-491e-b257-cbaf0ff7aa7e",
+  //     deviceContext: DeviceContext.getDefaultDeviceContext(
+  //         merchantCallBackScheme: merchantCallBackScheme),
+  //     merchantId: "PGTESTPAYUAT",
+  //     merchantTransactionId: generateRandomString(10).toUpperCase(),
+  //     merchantUserId: generateRandomString(8).toUpperCase(),
+  //     mobileNumber: "9769364928",
+  //   );
+  //   return paymentRequest;
+  // }
 
   void handleError(error) {
     setState(() {
@@ -221,50 +275,50 @@ class _OrderSummaryState extends State<OrderSummary> {
   var isLoading = false.obs;
 
 // In your _removeProductFromOrderSummary method:
- void _removeProductFromOrderSummary(int index) {
-  showWarningDialog(
-    () {
-      Navigator.of(context).pop();
+  void _removeProductFromOrderSummary(int index) {
+    showWarningDialog(
+      () {
+        Navigator.of(context).pop();
 
-      // Get product info before removing
-      final removedItem = widget.orderList[index];
-      final productId = removedItem["product_id"]?.toString();
-      final variantId = removedItem["pv_id"]?.toString();
-      final cartId = removedItem["cart_id"]?.toString();
+        // Get product info before removing
+        final removedItem = widget.orderList[index];
+        final productId = removedItem["product_id"]?.toString();
+        final variantId = removedItem["pv_id"]?.toString();
+        final cartId = removedItem["cart_id"]?.toString();
 
-      // 🔥 1. Remove from local cart state IMMEDIATELY
-      if (productId != null && variantId != null) {
-        final key = '$productId-$variantId';
-        cartController.localCartItems.remove(key);
-      }
+        // 🔥 1. Remove from local cart state IMMEDIATELY
+        if (productId != null && variantId != null) {
+          final key = '$productId-$variantId';
+          cartController.localCartItems.remove(key);
+        }
 
-      // 🔥 2. Remove from UI
-      setState(() {
-        widget.orderList.removeAt(index);
-      });
+        // 🔥 2. Remove from UI
+        setState(() {
+          widget.orderList.removeAt(index);
+        });
 
-      // 🔥 3. Update cart count - IMPORTANT!
-      cartController.cartItemCount.value = cartController.cartList.length;
-      
-      // 🔥 4. Also call updateCartCountOptimistically to ensure sync
-      cartController.updateCartCountOptimistically();
+        // 🔥 3. Update cart count - IMPORTANT!
+        cartController.cartItemCount.value = cartController.cartList.length;
 
-      // 🔥 5. Recalculate total
-      cartController.recalculateTotal();
+        // 🔥 4. Also call updateCartCountOptimistically to ensure sync
+        cartController.updateCartCountOptimistically();
 
-      // 🔥 6. Remove from server
-      if (cartId != null && cartId.isNotEmpty) {
-        cartController.removeFromCart(cartId);
-      }
-    },
-    "Remove Product",
-    "Are you sure you want to remove this item from your order?",
-    context,
-    () {
-      Navigator.of(context).pop();
-    },
-  );
-}
+        // 🔥 5. Recalculate total
+        cartController.recalculateTotal();
+
+        // 🔥 6. Remove from server
+        if (cartId != null && cartId.isNotEmpty) {
+          cartController.removeFromCart(cartId);
+        }
+      },
+      "Remove Product",
+      "Are you sure you want to remove this item from your order?",
+      context,
+      () {
+        Navigator.of(context).pop();
+      },
+    );
+  }
 
   checkoutOrder() async {
     if (!isCouponValid()) {
@@ -346,9 +400,9 @@ class _OrderSummaryState extends State<OrderSummary> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-     WidgetsBinding.instance.addPostFrameCallback((_) {
-    cartController.getCart();
-  });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      cartController.getCart();
+    });
 
     return Scaffold(
       appBar: const ThemedAppBar(
@@ -449,11 +503,11 @@ class _OrderSummaryState extends State<OrderSummary> {
                           builder: (_) => PhonePePaymentScreen(
                             pePg: pePg,
                             paymentRequest: _paymentRequest(),
-                            onPaymentComplete: (paymentResponse, paymentError) {
+                            onPaymentComplete: (paymentResponse, error) {
                               Navigator.pop(context);
-                              if (paymentResponse != null &&
-                                  paymentResponse.code ==
-                                      PaymentStatus.success) {
+
+                              if (paymentResponse?.code ==
+                                  PaymentStatus.success) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content: Text("Transaction Successful")),
@@ -469,6 +523,59 @@ class _OrderSummaryState extends State<OrderSummary> {
                           ),
                         ),
                       );
+
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (_) => PhonePePaymentScreen(
+                      //       pePg: pePg,
+                      //       paymentRequest: _paymentRequest(),
+                      //       onPaymentComplete: (paymentResponse, paymentError) {
+                      //         Navigator.pop(context);
+                      //         if (paymentResponse != null &&
+                      //             paymentResponse.code ==
+                      //                 PaymentStatus.success) {
+                      //           ScaffoldMessenger.of(context).showSnackBar(
+                      //             const SnackBar(
+                      //                 content: Text("Transaction Successful")),
+                      //           );
+                      //           Get.to(() => OrderAccepted());
+                      //         } else {
+                      //           ScaffoldMessenger.of(context).showSnackBar(
+                      //             const SnackBar(
+                      //                 content: Text("Transaction Failed")),
+                      //           );
+                      //         }
+                      //       },
+                      //     ),
+                      //   ),
+                      // );
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (_) => PhonePePaymentScreen(
+                      //       pePg: pePg,
+                      //       paymentRequest: _paymentRequest(),
+                      //       onPaymentComplete: (paymentResponse, paymentError) {
+                      //         Navigator.pop(context);
+                      //         if (paymentResponse != null &&
+                      //             paymentResponse.code ==
+                      //                 PaymentStatus.success) {
+                      //           ScaffoldMessenger.of(context).showSnackBar(
+                      //             const SnackBar(
+                      //                 content: Text("Transaction Successful")),
+                      //           );
+                      //           Get.to(() => OrderAccepted());
+                      //         } else {
+                      //           ScaffoldMessenger.of(context).showSnackBar(
+                      //             const SnackBar(
+                      //                 content: Text("Transaction Failed")),
+                      //           );
+                      //         }
+                      //       },
+                      //     ),
+                      //   ),
+                      // );
                     }
                   : null, // Disable onTap when button is not enabled
               child: Container(

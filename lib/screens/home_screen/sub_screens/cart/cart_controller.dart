@@ -43,63 +43,64 @@ class CartController extends GetxController {
   }
 
   /// NEW: Add to cart with immediate reactive update
-  void addToCartReactive(String productId, int qty, String variantId, BuildContext context) {
+  void addToCartReactive(
+      String productId, int qty, String variantId, BuildContext context) {
     final key = '$productId-$variantId';
     final currentQuantity = localCartItems[key] ?? 0;
     final newQuantity = currentQuantity + qty;
-    
+
     // Immediate UI update
     localCartItems[key] = newQuantity;
-    
+
     // Update cart count
     updateCartCountOptimistically();
-    
+
     // Sync with server in background
     _syncWithServerCart(productId, newQuantity, variantId);
-    
+
     // Show success message
-    Get.snackbar(
-      "Success",
-      "Product added to cart",
-      backgroundColor: Colors.green.shade100,
-      colorText: Colors.black,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 1),
-    );
+    // Get.snackbar(
+    //   "Success",
+    //   "Product added to cart",
+    //   backgroundColor: Colors.green.shade100,
+    //   colorText: Colors.black,
+    //   snackPosition: SnackPosition.BOTTOM,
+    //   duration: const Duration(seconds: 1),
+    // );
   }
 
   /// UPDATED: Update quantity with immediate reactive update
- /// UPDATED: Update quantity with proper removal handling
-void updateQuantity(String productId, String variantId, int newQuantity) {
-  final key = '$productId-$variantId';
-  
-  if (newQuantity <= 0) {
-    // Remove from local state
-    localCartItems.remove(key);
-    
-    // Find and remove from server cart
-    final existingItem = cartList.firstWhereOrNull(
-      (item) => 
-        item['product_id']?.toString() == productId &&
-        item['pv_id']?.toString() == variantId,
-    );
-    
-    if (existingItem != null) {
-      // Remove from server cart
-      removeFromCart(existingItem['cart_id'].toString());
+  /// UPDATED: Update quantity with proper removal handling
+  void updateQuantity(String productId, String variantId, int newQuantity) {
+    final key = '$productId-$variantId';
+
+    if (newQuantity <= 0) {
+      // Remove from local state
+      localCartItems.remove(key);
+
+      // Find and remove from server cart
+      final existingItem = cartList.firstWhereOrNull(
+        (item) =>
+            item['product_id']?.toString() == productId &&
+            item['pv_id']?.toString() == variantId,
+      );
+
+      if (existingItem != null) {
+        // Remove from server cart
+        removeFromCart(existingItem['cart_id'].toString());
+      }
+    } else {
+      localCartItems[key] = newQuantity;
+      // Update server cart
+      _syncWithServerCart(productId, newQuantity, variantId);
     }
-  } else {
-    localCartItems[key] = newQuantity;
-    // Update server cart
-    _syncWithServerCart(productId, newQuantity, variantId);
+
+    // Update counts and totals
+    updateCartCountOptimistically();
+
+    // Update total price
+    cartTotalPrice.value = getCartTotalPrice();
   }
-  
-  // Update counts and totals
-  updateCartCountOptimistically();
-  
-  // Update total price
-  cartTotalPrice.value = getCartTotalPrice();
-}
 
   /// NEW: Remove product from local cart (for when removing from cart/order summary)
   void removeFromLocalCart(String productId, String variantId) {
@@ -115,7 +116,8 @@ void updateQuantity(String productId, String variantId, int newQuantity) {
   }
 
   /// UPDATED: Sync with server (background process)
-  Future<void> _syncWithServerCart(String productId, int qty, String variantId) async {
+  Future<void> _syncWithServerCart(
+      String productId, int qty, String variantId) async {
     try {
       final userId = await SharedPref.getUserId();
       if (userId == null) return;
@@ -167,29 +169,30 @@ void updateQuantity(String productId, String variantId, int newQuantity) {
       // Even if sync fails, keep local state for better UX
     }
   }
+
   /// NEW: Refresh cart with retry logic
-Future<void> refreshCartWithRetry({int maxRetries = 2}) async {
-  for (int attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      log("🔄 Attempting to refresh cart (attempt $attempt/$maxRetries)");
-      await getCart();
-      break; // Success, exit loop
-    } catch (e) {
-      log("❌ Cart refresh attempt $attempt failed: $e");
-      if (attempt == maxRetries) {
-        log("❌ All cart refresh attempts failed");
-        // Optionally show error to user
-        Get.snackbar(
-          "Warning",
-          "Unable to sync cart with server",
-          backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 2),
-        );
+  Future<void> refreshCartWithRetry({int maxRetries = 2}) async {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        log("🔄 Attempting to refresh cart (attempt $attempt/$maxRetries)");
+        await getCart();
+        break; // Success, exit loop
+      } catch (e) {
+        log("❌ Cart refresh attempt $attempt failed: $e");
+        if (attempt == maxRetries) {
+          log("❌ All cart refresh attempts failed");
+          // Optionally show error to user
+          Get.snackbar(
+            "Warning",
+            "Unable to sync cart with server",
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          );
+        }
+        await Future.delayed(const Duration(seconds: 1)); // Wait before retry
       }
-      await Future.delayed(const Duration(seconds: 1)); // Wait before retry
     }
   }
-}
 
   /// UPDATED: Remove from server cart
   Future<void> _removeFromServerCart(String productId, String variantId) async {
@@ -206,35 +209,34 @@ Future<void> refreshCartWithRetry({int maxRetries = 2}) async {
     }
   }
 
-  
-void updateCartCountOptimistically() {
-  // Use localCartItems as the single source of truth
-  int count = 0;
-  
-  // Count items with quantity > 0
-  for (final quantity in localCartItems.values) {
-    if (quantity > 0) {
-      count++;
-    }
-  }
-  
-  // Also count items in cartList that might not be in localCartItems
-  for (final item in cartList) {
-    final productId = item['product_id']?.toString();
-    final variantId = item['pv_id']?.toString();
-    if (productId != null && variantId != null) {
-      final key = '$productId-$variantId';
-      if (!localCartItems.containsKey(key) || localCartItems[key] == 0) {
+  void updateCartCountOptimistically() {
+    // Use localCartItems as the single source of truth
+    int count = 0;
+
+    // Count items with quantity > 0
+    for (final quantity in localCartItems.values) {
+      if (quantity > 0) {
         count++;
       }
     }
+
+    // Also count items in cartList that might not be in localCartItems
+    for (final item in cartList) {
+      final productId = item['product_id']?.toString();
+      final variantId = item['pv_id']?.toString();
+      if (productId != null && variantId != null) {
+        final key = '$productId-$variantId';
+        if (!localCartItems.containsKey(key) || localCartItems[key] == 0) {
+          count++;
+        }
+      }
+    }
+
+    cartItemCount.value = count;
+    isCartCount.value = count;
+
+    log("🛒 Cart count updated: $count items");
   }
-  
-  cartItemCount.value = count;
-  isCartCount.value = count;
-  
-  log("🛒 Cart count updated: $count items");
-}
 
   /// UPDATED: Add product to cart (original method - keep for compatibility)
   Future<bool> addToCart(
@@ -251,7 +253,6 @@ void updateCartCountOptimistically() {
       // Use reactive update for immediate UI response
       addToCartReactive(productId, qty, variantId, context);
       return true;
-
     } catch (e) {
       log("Exception in addToCart: $e");
       Get.snackbar(
@@ -317,46 +318,49 @@ void updateCartCountOptimistically() {
       isBuyNowLoading.value = false;
     }
   }
-  /// Get cart item count directly from local state (most accurate)
-int getAccurateCartCount() {
-  int count = 0;
-  for (final quantity in localCartItems.values) {
-    if (quantity > 0) {
-      count++;
-    }
-  }
-  return count;
-}
 
-/// Get cart total from local state
-double getCartTotalPrice() {
-  double total = 0.0;
-  
-  // We need to calculate total based on both local and server data
-  for (final entry in localCartItems.entries) {
-    if (entry.value > 0) {
-      // Find the product in cartList to get price
-      final parts = entry.key.split('-');
-      if (parts.length == 2) {
-        final productId = parts[0];
-        final variantId = parts[1];
-        
-        final product = cartList.firstWhereOrNull(
-          (item) => 
-            item['product_id']?.toString() == productId &&
-            item['pv_id']?.toString() == variantId,
-        );
-        
-        if (product != null) {
-          final price = double.tryParse(product["special_price"]?.toString() ?? "0") ?? 0.0;
-          total += price * entry.value;
+  /// Get cart item count directly from local state (most accurate)
+  int getAccurateCartCount() {
+    int count = 0;
+    for (final quantity in localCartItems.values) {
+      if (quantity > 0) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /// Get cart total from local state
+  double getCartTotalPrice() {
+    double total = 0.0;
+
+    // We need to calculate total based on both local and server data
+    for (final entry in localCartItems.entries) {
+      if (entry.value > 0) {
+        // Find the product in cartList to get price
+        final parts = entry.key.split('-');
+        if (parts.length == 2) {
+          final productId = parts[0];
+          final variantId = parts[1];
+
+          final product = cartList.firstWhereOrNull(
+            (item) =>
+                item['product_id']?.toString() == productId &&
+                item['pv_id']?.toString() == variantId,
+          );
+
+          if (product != null) {
+            final price =
+                double.tryParse(product["special_price"]?.toString() ?? "0") ??
+                    0.0;
+            total += price * entry.value;
+          }
         }
       }
     }
+
+    return total;
   }
-  
-  return total;
-}
 
   /// Update cart quantity
   Future<bool> updateCart(
@@ -392,63 +396,64 @@ double getCartTotalPrice() {
     }
   }
 
-   
-  
- /// UPDATED: Remove item from cart - SIMPLIFIED VERSION
-Future<bool> removeFromCart(String cartId) async {
-  try {
-    isRemovingFromCart.value = true;
-    
-    // 1. REMOVE FROM LOCAL STATE IMMEDIATELY
-    // Find and remember the item BEFORE removing
-    final itemToRemove = cartList.firstWhereOrNull((item) => item['cart_id'] == cartId);
-    
-    if (itemToRemove != null) {
-      final productId = itemToRemove['product_id']?.toString();
-      final variantId = itemToRemove['pv_id']?.toString();
-      
-      // Remove from localCartItems immediately
-      if (productId != null && variantId != null) {
-        final key = '$productId-$variantId';
-        localCartItems.remove(key);
+  /// UPDATED: Remove item from cart - SIMPLIFIED VERSION
+  Future<bool> removeFromCart(String cartId) async {
+    try {
+      isRemovingFromCart.value = true;
+
+      // 1. REMOVE FROM LOCAL STATE IMMEDIATELY
+      // Find and remember the item BEFORE removing
+      final itemToRemove =
+          cartList.firstWhereOrNull((item) => item['cart_id'] == cartId);
+
+      if (itemToRemove != null) {
+        final productId = itemToRemove['product_id']?.toString();
+        final variantId = itemToRemove['pv_id']?.toString();
+
+        // Remove from localCartItems immediately
+        if (productId != null && variantId != null) {
+          final key = '$productId-$variantId';
+          localCartItems.remove(key);
+        }
+
+        // Remove from cartList immediately
+        cartList.removeWhere((item) => item['cart_id'] == cartId);
+
+        // Update counts IMMEDIATELY
+        cartItemCount.value = cartList.length;
+        isCartCount.value = cartList.length;
+
+        // Recalculate total IMMEDIATELY
+        recalculateTotal();
       }
-      
-      // Remove from cartList immediately
-      cartList.removeWhere((item) => item['cart_id'] == cartId);
-      
-      // Update counts IMMEDIATELY
-      cartItemCount.value = cartList.length;
-      isCartCount.value = cartList.length;
-      
-      // Recalculate total IMMEDIATELY
-      recalculateTotal();
-    }
 
-    // 2. Try to remove from server (background process)
-    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/Auth/remove_cart'));
-    request.fields.addAll({'cart_id': cartId});
+      // 2. Try to remove from server (background process)
+      var request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl/Auth/remove_cart'));
+      request.fields.addAll({'cart_id': cartId});
 
-    http.StreamedResponse response = await request.send();
-    final resBody = await response.stream.bytesToString();
-    log("Remove from cart response: $resBody");
+      http.StreamedResponse response = await request.send();
+      final resBody = await response.stream.bytesToString();
+      log("Remove from cart response: $resBody");
 
-    if (response.statusCode == 200) {
-      log("✅ Item removed successfully from server");
-      return true;
-    } else {
-      log("⚠️ Server remove failed, but item removed from local state");
-      // Item is already removed from local state, so UI updates immediately
+      if (response.statusCode == 200) {
+        log("✅ Item removed successfully from server");
+        return true;
+      } else {
+        log("⚠️ Server remove failed, but item removed from local state");
+        // Item is already removed from local state, so UI updates immediately
+        return false;
+      }
+    } catch (e) {
+      log("❌ Remove from cart exception: $e");
+      // Even if exception occurs, item is already removed from local state
       return false;
+    } finally {
+      isRemovingFromCart.value = false;
     }
-  } catch (e) {
-    log("❌ Remove from cart exception: $e");
-    // Even if exception occurs, item is already removed from local state
-    return false;
-  } finally {
-    isRemovingFromCart.value = false;
   }
-}
-/// DEBUG: Print current cart state
+
+  /// DEBUG: Print current cart state
 // void debugCartState() {
 //   log("🛒 DEBUG CART STATE:");
 //   log("  - cartList length: ${cartList.length}");
@@ -458,17 +463,17 @@ Future<bool> removeFromCart(String cartId) async {
 //   log("  - cartTotalPrice: $cartTotalPrice");
 // }
 
-/// EMERGENCY: Force reset cart state
-void forceResetCart() {
-  cartList.clear();
-  localCartItems.clear();
-  cartItemCount.value = 0;
-  isCartCount.value = 0;
-  cartTotalPrice.value = 0.0;
-  log("🛒 Cart force reset completed");
-}
+  /// EMERGENCY: Force reset cart state
+  void forceResetCart() {
+    cartList.clear();
+    localCartItems.clear();
+    cartItemCount.value = 0;
+    isCartCount.value = 0;
+    cartTotalPrice.value = 0.0;
+    log("🛒 Cart force reset completed");
+  }
 
-/// FIXED: Get accurate cart item count
+  /// FIXED: Get accurate cart item count
 // int getAccurateCartCount() {
 //   int count = 0;
 //   for (final quantity in localCartItems.values) {
@@ -479,85 +484,86 @@ void forceResetCart() {
 //   return count;
 // }
   /// UPDATED: Fetch cart data - also sync local cart
- /// UPDATED: Fetch cart data - with error handling for HTTP 500
-Future<void> getCart() async {
-  try {
-    final userId = await SharedPref.getUserId();
-    if (userId == null) {
-      log("❌ User ID is null - cannot fetch cart");
-      return;
-    }
-
-    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/Auth/get_cart_list'));
-    request.fields.addAll({'uid': userId});
-
-    http.StreamedResponse response = await request.send();
-    final body = await response.stream.bytesToString();
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(body);
-      if (data["status"] == 200) {
-        final cartData = data["cart_list"] as List? ?? [];
-        cartList.value = cartData;
-        
-        // Sync local cart items with server data
-        _syncLocalWithServerCart(cartData);
-        
-        cartItemCount.value = cartData.length;
-        isCartCount.value = cartData.length;
-
-        recalculateTotal();
-        log("✅ Cart synced successfully: ${cartData.length} items");
-      } else {
-        log("⚠️ Server returned error status: ${data["status"]} - ${data["message"]}");
-        // Don't throw exception, just log
+  /// UPDATED: Fetch cart data - with error handling for HTTP 500
+  Future<void> getCart() async {
+    try {
+      final userId = await SharedPref.getUserId();
+      if (userId == null) {
+        log("❌ User ID is null - cannot fetch cart");
+        return;
       }
-    } else {
-      log("❌ HTTP ${response.statusCode} when fetching cart - Body: $body");
-      // If server returns error, keep existing cart data
-      // Don't clear cart on server error
-      throw Exception("HTTP ${response.statusCode} - Server error");
-    }
-  } catch (e) {
-    log("⚠️ Get Cart Exception: $e");
-    // Don't clear cart on exception - keep existing data
-    // Just log the error
-  }
-}
-  /// Clean up local cart by removing items with zero quantity
-void cleanupLocalCart() {
-  localCartItems.removeWhere((key, quantity) => quantity <= 0);
-  updateCartCountOptimistically();
-  cartTotalPrice.value = getCartTotalPrice();
-}
 
-  
-/// FIXED: Sync local cart with server data
-void _syncLocalWithServerCart(List<dynamic> serverCart) {
-  log("🔄 Syncing local cart with server cart: ${serverCart.length} items");
-  
-  // Clear local items first
-  localCartItems.clear();
-  
-  // Add server items to local state
-  for (final item in serverCart) {
-    final productId = item['product_id']?.toString();
-    final variantId = item['pv_id']?.toString();
-    final serverQty = int.tryParse(item['cart_qty']?.toString() ?? '1') ?? 1;
-    
-    if (productId != null && variantId != null && serverQty > 0) {
-      final key = '$productId-$variantId';
-      localCartItems[key] = serverQty;
+      var request = http.MultipartRequest(
+          'POST', Uri.parse('$baseUrl/Auth/get_cart_list'));
+      request.fields.addAll({'uid': userId});
+
+      http.StreamedResponse response = await request.send();
+      final body = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(body);
+        if (data["status"] == 200) {
+          final cartData = data["cart_list"] as List? ?? [];
+          cartList.value = cartData;
+
+          // Sync local cart items with server data
+          _syncLocalWithServerCart(cartData);
+
+          cartItemCount.value = cartData.length;
+          isCartCount.value = cartData.length;
+
+          recalculateTotal();
+          log("✅ Cart synced successfully: ${cartData.length} items");
+        } else {
+          log("⚠️ Server returned error status: ${data["status"]} - ${data["message"]}");
+          // Don't throw exception, just log
+        }
+      } else {
+        log("❌ HTTP ${response.statusCode} when fetching cart - Body: $body");
+        // If server returns error, keep existing cart data
+        // Don't clear cart on server error
+        throw Exception("HTTP ${response.statusCode} - Server error");
+      }
+    } catch (e) {
+      log("⚠️ Get Cart Exception: $e");
+      // Don't clear cart on exception - keep existing data
+      // Just log the error
     }
   }
-  
-  // Update counts
-  cartItemCount.value = localCartItems.length;
-  isCartCount.value = localCartItems.length;
-  
-  // Update total price
-  cartTotalPrice.value = getCartTotalPrice();
-}
+
+  /// Clean up local cart by removing items with zero quantity
+  void cleanupLocalCart() {
+    localCartItems.removeWhere((key, quantity) => quantity <= 0);
+    updateCartCountOptimistically();
+    cartTotalPrice.value = getCartTotalPrice();
+  }
+
+  /// FIXED: Sync local cart with server data
+  void _syncLocalWithServerCart(List<dynamic> serverCart) {
+    log("🔄 Syncing local cart with server cart: ${serverCart.length} items");
+
+    // Clear local items first
+    localCartItems.clear();
+
+    // Add server items to local state
+    for (final item in serverCart) {
+      final productId = item['product_id']?.toString();
+      final variantId = item['pv_id']?.toString();
+      final serverQty = int.tryParse(item['cart_qty']?.toString() ?? '1') ?? 1;
+
+      if (productId != null && variantId != null && serverQty > 0) {
+        final key = '$productId-$variantId';
+        localCartItems[key] = serverQty;
+      }
+    }
+
+    // Update counts
+    cartItemCount.value = localCartItems.length;
+    isCartCount.value = localCartItems.length;
+
+    // Update total price
+    cartTotalPrice.value = getCartTotalPrice();
+  }
 
   /// Fetch wishlist data
   Future<void> getWishList() async {

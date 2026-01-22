@@ -11,6 +11,7 @@ import 'package:organic_saga/constants/constants.dart';
 import 'package:organic_saga/screens/home_screen/home_controller.dart';
 import 'package:organic_saga/screens/home_screen/search_screens/search_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
+import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/sub_screens/order_summary.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/product_display_screen/WishlistController.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/product_display_screen/product_controller.dart';
@@ -214,7 +215,7 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
             double.tryParse(selectedVariant?["special_price"] ?? "0") ?? 0;
         final unitPrice = (specialPrice > 0) ? specialPrice : price;
         final totalPrice = unitPrice * controller.quantity.value;
-        
+
         return SingleChildScrollView(
           padding: EdgeInsets.only(bottom: 15.h),
           child: Column(
@@ -351,8 +352,8 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                   itemCount: extraImages.length,
                   itemBuilder: (context, index) {
                     return Container(
-                      margin: EdgeInsets.symmetric(
-                          horizontal: 12.w, vertical: 8.h),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border.all(
@@ -432,12 +433,13 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                       onTap: () async {
                         final userId = await SharedPref.getUserId();
                         if (userId == null) {
-                          Get.snackbar(
-                              "Login Required", "Please login to manage wishlist");
+                          Get.snackbar("Login Required",
+                              "Please login to manage wishlist");
                           return;
                         }
                         if (isInWishlist) {
-                          final item = wishlistController.favList.firstWhereOrNull(
+                          final item =
+                              wishlistController.favList.firstWhereOrNull(
                             (e) => e['product_id'].toString() == widget.id,
                           );
                           if (item != null) {
@@ -445,7 +447,8 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                                 item['wid'].toString(), userId);
                           }
                         } else {
-                          await wishlistController.addToWishlist(widget.id, userId);
+                          await wishlistController.addToWishlist(
+                              widget.id, userId);
                         }
                         await wishlistController.getWishlist(userId);
                       },
@@ -575,16 +578,14 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                     selectedVariantIndex.value < variantList.length)
                 ? variantList[selectedVariantIndex.value]
                 : null;
-            final unitPrice = double.tryParse(
-                    selectedVariant?["special_price"] ?? "0") ??
-                0;
+            final unitPrice =
+                double.tryParse(selectedVariant?["special_price"] ?? "0") ?? 0;
             final totalPrice = unitPrice * controller.quantity.value;
 
             return Container(
               width: double.infinity,
               margin: EdgeInsets.symmetric(vertical: 8.h),
-              padding:
-                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(12.r),
@@ -731,7 +732,7 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
             if (isFaqLoading.value) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (faqs.isEmpty) {
               return Padding(
                 padding: EdgeInsets.all(16.w),
@@ -825,14 +826,15 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                           : () async {
                               final userId = await SharedPref.getUserId();
                               if (userId == null) {
-                                Get.snackbar(
-                                    "Login Required", "Please login to add product to cart");
+                                Get.snackbar("Login Required",
+                                    "Please login to add product to cart");
                                 return;
                               }
 
-                              final selectedVariantId = productDetails["variant"]
-                                      [selectedVariantIndex.value]["id"]
-                                  .toString();
+                              final selectedVariantId =
+                                  productDetails["variant"]
+                                          [selectedVariantIndex.value]["id"]
+                                      .toString();
 
                               final success = await cartController.addToCart(
                                 widget.id,
@@ -842,7 +844,34 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                               );
 
                               if (success) {
-                                Get.snackbar("Success", "Product added to cart");
+                                Get.snackbar(
+                                  "Success",
+                                  "Product added to cart",
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  duration: const Duration(seconds: 3),
+                                  icon: const Icon(
+                                    Icons.shopping_cart,
+                                    color: Colors.white,
+                                  ),
+                                  mainButton: TextButton.icon(
+                                    onPressed: () {
+                                      Get.to(() => Cart()); // navigate to cart
+                                    },
+                                    icon: const Icon(
+                                      Icons.arrow_forward,
+                                      color: Colors.white,
+                                    ),
+                                    label: const Text(
+                                      "Go to Cart",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                );
+
+                                // Get.snackbar(
+                                //     "Success", "Product added to cart");
                                 controller.quantity.value = 1;
                               } else {
                                 Get.snackbar("Error", "Failed to add product");
@@ -850,10 +879,7 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                             },
                       label: Text(
                         "Add to Cart",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(fontSize: 14.sp, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: secondaryColor,
@@ -893,14 +919,15 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                           : () async {
                               final userId = await SharedPref.getUserId();
                               if (userId == null) {
-                                Get.snackbar(
-                                    "Login Required", "Please login to buy product");
+                                Get.snackbar("Login Required",
+                                    "Please login to buy product");
                                 return;
                               }
 
-                              final selectedVariantId = productDetails["variant"]
-                                      [selectedVariantIndex.value]["id"]
-                                  .toString();
+                              final selectedVariantId =
+                                  productDetails["variant"]
+                                          [selectedVariantIndex.value]["id"]
+                                      .toString();
 
                               final success = await cartController.buyNow(
                                 widget.id,

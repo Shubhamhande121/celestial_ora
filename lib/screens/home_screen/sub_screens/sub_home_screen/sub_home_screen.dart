@@ -635,6 +635,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                                 ? CachedNetworkImage(
                                     imageUrl: imageUrl,
                                     fit: BoxFit.fill,
+                                    height: double.infinity,
                                     placeholder: (context, url) => Container(
                                       color: Colors.grey.shade200,
                                     ),
@@ -647,9 +648,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                                       ),
                                     ),
                                   )
-                                : Container(
-                                    color: Colors.grey.shade100,
-                                  ),
+                                : Container(color: Colors.grey.shade100),
 
                             // ✨ Soft gradient overlay (luxury feel)
                             Container(

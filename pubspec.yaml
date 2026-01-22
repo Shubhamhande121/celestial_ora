@@ -58,6 +58,8 @@ dependencies:
   flutter_keyboard_visibility: ^6.0.0
   flutter_local_notifications: ^19.4.2
   cached_network_image: ^3.4.1
+  razorpay_flutter: ^1.4.0
+
 
 dev_dependencies:
   flutter_test:

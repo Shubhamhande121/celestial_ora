@@ -11,12 +11,18 @@ import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controlle
 import 'package:organic_saga/screens/home_screen/sub_screens/product_display_screen/product_display_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
-class SearchBottomSheet extends StatelessWidget {
+class SearchBottomSheet extends StatefulWidget {
   SearchBottomSheet({Key? key, this.scrollController}) : super(key: key);
 
   final ScrollController? scrollController;
 
+  @override
+  State<SearchBottomSheet> createState() => _SearchBottomSheetState();
+}
+
+class _SearchBottomSheetState extends State<SearchBottomSheet> {
   var isLoading = false.obs;
+
   var listOfSearch = [].obs;
 
   getSearch(search) async {
@@ -39,8 +45,6 @@ class SearchBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    CartController cartController = Get.find();
-
     return Container(
       height: 0.9.sh, // 90% of screen height
       decoration: const BoxDecoration(
@@ -78,7 +82,7 @@ class SearchBottomSheet extends StatelessWidget {
               child: Obx(() {
                 if (isLoading.value) {
                   return GridView.builder(
-                    controller: scrollController,
+                    controller: widget.scrollController,
                     itemCount: 6,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
@@ -89,9 +93,15 @@ class SearchBottomSheet extends StatelessWidget {
                     ),
                     itemBuilder: (context, index) => shimmerCard(),
                   );
+                }
+
+                if (listOfSearch.isEmpty && !isLoading.value) {
+                  return Center(
+                    child: Text("No products found"),
+                  );
                 } else {
                   return GridView.builder(
-                    controller: scrollController,
+                    controller: widget.scrollController,
                     itemCount: listOfSearch.length,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(

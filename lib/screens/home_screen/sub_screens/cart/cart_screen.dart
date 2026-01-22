@@ -32,7 +32,6 @@ class _CartState extends State<Cart> {
 
   @override
   Widget build(BuildContext context) {
-    CartController cartController = Get.find();
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -55,7 +54,7 @@ class _CartState extends State<Cart> {
                     qty: int.tryParse(item["cart_qty"] ?? "1") ?? 1,
                     // In the onRemove callback in Cart screen
                     // In your Cart screen, update the onRemove callback:
-// In your Cart screen, update the onRemove callback:
+                    // In your Cart screen, update the onRemove callback:
                     onRemove: () {
                       showWarningDialog(
                         () {

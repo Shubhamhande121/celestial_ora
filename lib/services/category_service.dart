@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:organic_saga/constants/baseUrl.dart';
 import 'package:organic_saga/model/category_model.dart';
- 
+
 class CategoryService {
   Future<List<Category>> fetchCategories() async {
     final response = await http.get(

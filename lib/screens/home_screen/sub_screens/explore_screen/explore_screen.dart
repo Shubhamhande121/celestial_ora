@@ -57,7 +57,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
-            padding:  EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(8.w),
             child: Column(
               children: [
                 Expanded(
@@ -68,13 +68,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                   ),
                 ),
-                 SizedBox(height: 10.h),
+                SizedBox(height: 10.h),
                 Container(
                   height: 12.h,
                   width: double.infinity,
                   color: Colors.grey.shade400,
                 ),
-                 SizedBox(height: 10.h),
+                SizedBox(height: 10.h),
               ],
             ),
           ),
@@ -117,8 +117,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 );
               },
               child: Container(
-                padding:
-                     EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -162,7 +161,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 final categories = snapshot.data!;
 
                 return GridView.builder(
-                  padding:  EdgeInsets.symmetric(horizontal: 16.w),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
@@ -200,7 +199,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           children: [
                             Expanded(
                               child: Padding(
-                                padding:  EdgeInsets.all(8.0.w),
+                                padding: EdgeInsets.all(8.0.w),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(

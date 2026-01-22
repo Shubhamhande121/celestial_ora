@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:organic_saga/screens/home_screen/home_controller.dart';
 import 'package:organic_saga/screens/home_screen/root_home_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/orders/orders.dart';
+import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
 
 import '../../../../../constants/constants.dart';
 
@@ -14,6 +15,16 @@ class OrderAccepted extends StatefulWidget {
 }
 
 class _OrderAcceptedState extends State<OrderAccepted> {
+  CartController _cartController = Get.find<CartController>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _cartController.removeFromCart('');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
