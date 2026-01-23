@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:http/http.dart' as http;
 import 'package:organic_saga/components/content_shimmer.dart';
 import 'package:organic_saga/components/custom_app_bar.dart';
 import 'package:organic_saga/constants/baseUrl.dart';
+import 'package:html/parser.dart' as html_parser;
 
 class PrivacyPolicy extends StatefulWidget {
   const PrivacyPolicy({Key? key}) : super(key: key);
@@ -21,19 +21,6 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
     super.initState();
     _privacyFuture = _getPrivacyPolicy();
   }
-//   String cleanHtml(String html) {
-//   // Remove font-size styles completely
-//   html = html.replaceAll(
-//     RegExp(r'font-size\s*:\s*[^;"]+;?', caseSensitive: false),
-//     '',
-//   );
-
-//   // Remove strong & heading tags but keep text
-//   html = html
-//       .replaceAll(RegExp(r'<\/?(strong|b|h1|h2|h3|h4|h5|h6)[^>]*>'), '');
-
-//   return html;
-// }
 
   Future<String> _getPrivacyPolicy() async {
     try {
@@ -43,10 +30,9 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
         if (data['privacy_policy'] != null &&
             data['privacy_policy'].isNotEmpty) {
-          return data['privacy_policy'][0]['value'] ?? '';
+          return _stripHtml(data['privacy_policy'][0]['value'] ?? '');
         }
       }
       return '';
@@ -55,55 +41,86 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
     }
   }
 
+  /// 🔥 Remove HTML tags safely
+  String _stripHtml(String htmlText) {
+    final RegExp exp = RegExp(r'<[^>]*>', multiLine: true);
+    return htmlText.replaceAll(exp, '').replaceAll('&nbsp;', ' ').trim();
+  }
+
+  String removeHtmlTags(String htmlText) {
+    final document = html_parser.parse(htmlText);
+    return document.body?.text ?? '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: const ThemedAppBar(
         title: 'Privacy Policy',
         showBack: true,
       ),
-      body: FutureBuilder<String>(
-        future: _privacyFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const ContentShimmer(sections: 3);
-          }
+      body: SafeArea(
+        child: FutureBuilder<String>(
+          future: _privacyFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: ContentShimmer(sections: 4),
+              );
+            }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No Data Found"));
-          }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return _emptyState();
+            }
 
-          return SingleChildScrollView(
+            return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: HtmlWidget(
-                snapshot.data!,
-
-                // Base style for ALL text
-                textStyle: const TextStyle(
-                  fontSize: 14,
-                  height: 1.6,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.normal,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
+                child: SelectableText(
+                  snapshot.data!,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    height: 1.7,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
-                // 🔥 Force-remove inline font sizes
-                customStylesBuilder: (element) {
-                  return {
-                    'font-size': '14px',
-                    'font-weight': 'normal',
-                    'line-height': '1.6',
-                  };
-                },
-
-                // 🔥 Remove strong/bold effect
-                // customTextStyle: (node, baseStyle) {
-                //   return baseStyle.copyWith(
-                //     fontSize: 14,
-                //     fontWeight: FontWeight.normal,
-                //   );
-                // },
-              ));
-        },
+  Widget _emptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.privacy_tip_outlined, size: 52, color: Colors.grey),
+          SizedBox(height: 14),
+          Text(
+            "Privacy Policy not available",
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

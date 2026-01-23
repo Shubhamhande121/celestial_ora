@@ -153,16 +153,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
             },
             icon: const Icon(Icons.search, color: Colors.white),
           ),
-          // IconButton(
-          //   onPressed: () {
-          //     Navigator.of(context).push(
-          //       MaterialPageRoute(
-          //         builder: (context) => const FilterScreen(),
-          //       ),
-          //     );
-          //   },
-          //   icon: const Icon(Icons.tune, color: Colors.white),
-          // ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const FilterScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.tune, color: Colors.white),
+          ),
         ],
       ),
       body: RefreshIndicator(
