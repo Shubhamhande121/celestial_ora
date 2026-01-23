@@ -185,7 +185,7 @@ class _AccountState extends State<Account> {
                     _buildItem("Contact Us", Icons.contact_support_outlined,
                         const ContactUs()),
                     _buildItem("Privacy Policy", Icons.security_outlined,
-                        const PrivacyPolicy()),
+                        const PrivacyPolicyScreen()),
                     _buildItem("Terms & Conditions", Icons.newspaper_outlined,
                         const TermsCondition()),
                     _buildItem("About", Icons.info_outline, const AboutUs()),

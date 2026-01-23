@@ -28,9 +28,26 @@ class _BestSellerWithCategoryScreenState
   final cartController = Get.find<CartController>();
 
   @override
+  void initState() {
+    super.initState();
+    // Debug: Print all categories and their IDs
+    print("=== CATEGORIES ===");
+    for (var i = 0; i < widget.categories.length; i++) {
+      final cat = widget.categories[i];
+      print("Category $i: ${cat['name']} - ID: ${cat['category_id']}");
+    }
+
+    // Debug: Print categoryWiseProducts keys
+    print("\n=== CATEGORY WISE PRODUCTS KEYS ===");
+    widget.categoryWiseProducts.forEach((key, value) {
+      print("Key: $key, Product Count: ${value.length}");
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final selectedCategoryId =
-        widget.categories[selectedCategoryIndex]['id'].toString();
+        widget.categories[selectedCategoryIndex]['category_id'].toString();
     final selectedProductList =
         widget.categoryWiseProducts[selectedCategoryId] ?? [];
 
@@ -122,10 +139,7 @@ class _BestSellerWithCategoryScreenState
                           onTap: () {
                             final pid = item['productid']?.toString() ?? '';
                             if (pid.isNotEmpty) {
-                               
-                               
                               Get.to(() => ProductDisplayScreen(id: pid));
-
                             }
                           },
                           child: Container(

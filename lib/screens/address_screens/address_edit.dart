@@ -203,13 +203,13 @@ class _EditAddressScreenState extends State<EditAddressScreen> {
                 controller: pincodeController,
                 decoration: buildInputDecoration("Pincode"),
                 keyboardType: TextInputType.number,
-                maxLength: 7,
+                maxLength: 6,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty)
                     return 'Please enter pincode';
                   if (!RegExp(r'^\d{7}$').hasMatch(value)) {
-                    return 'Pincode must be exactly 7 digits';
+                    return 'Pincode must be exactly 6 digits';
                   }
                   return null;
                 },
