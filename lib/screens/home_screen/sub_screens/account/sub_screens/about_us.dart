@@ -16,12 +16,13 @@ class AboutUs extends StatefulWidget {
 class _AboutUsState extends State<AboutUs> {
   Future<String> getAboutUs() async {
     try {
-      var request = http.Request('GET', Uri.parse('$baseUrl/Auth/about_fetch'));
-      http.StreamedResponse response = await request.send();
+      final request =
+          http.Request('GET', Uri.parse('$baseUrl/Auth/about_fetch'));
+      final response = await request.send();
 
       if (response.statusCode == 200) {
-        var res = await response.stream.bytesToString();
-        var data = jsonDecode(res);
+        final res = await response.stream.bytesToString();
+        final data = jsonDecode(res);
         return data["about_us"][0]["value"];
       } else {
         return "No Data Found";
@@ -34,39 +35,77 @@ class _AboutUsState extends State<AboutUs> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FA), // soft background
       appBar: const ThemedAppBar(
         title: 'About Us',
         showBack: true,
       ),
       body: SafeArea(
-        // <-- Wrap in SafeArea to avoid overlap
         child: FutureBuilder<String>(
           future: getAboutUs(),
           builder: (context, snap) {
             if (snap.connectionState == ConnectionState.waiting) {
-              // Use reusable ContentShimmer
-              return const ContentShimmer(sections: 3);
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: ContentShimmer(sections: 3),
+              );
             }
 
-            if (snap.hasError || snap.data == null) {
-              return const Center(child: Text("No Data Found"));
+            if (!snap.hasData || snap.data == null) {
+              return _emptyState();
             }
 
-            // Real content
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: HtmlWidget(
-                snap.data!,
-                textStyle: const TextStyle(
-                  fontSize: 14,  
-                  color: Colors.black,  
-                  fontWeight: FontWeight.w400,
-                  height: 1.5, // line height
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                child: HtmlWidget(
+                  snap.data!,
+                  textStyle: const TextStyle(
+                    fontSize: 15,
+                    height: 1.6,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             );
           },
         ),
+      ),
+    );
+  }
+
+  /// Empty / Error UI
+  Widget _emptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.info_outline, size: 48, color: Colors.grey),
+          SizedBox(height: 12),
+          Text(
+            "No information available",
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

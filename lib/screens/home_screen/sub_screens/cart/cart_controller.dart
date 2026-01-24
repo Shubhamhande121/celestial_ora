@@ -71,7 +71,8 @@ class CartController extends GetxController {
 
   /// UPDATED: Update quantity with immediate reactive update
   /// UPDATED: Update quantity with proper removal handling
-  void updateQuantity(String productId, String variantId, int newQuantity) {
+  void updateQuantity(
+      String productId, String variantId, int newQuantity) async {
     final key = '$productId-$variantId';
 
     if (newQuantity <= 0) {
@@ -92,7 +93,7 @@ class CartController extends GetxController {
     } else {
       localCartItems[key] = newQuantity;
       // Update server cart
-      _syncWithServerCart(productId, newQuantity, variantId);
+      await _syncWithServerCart(productId, newQuantity, variantId);
     }
 
     // Update counts and totals
@@ -161,7 +162,7 @@ class CartController extends GetxController {
         final responseData = jsonDecode(resBody);
         if (responseData["status"] == 200) {
           // Refresh cart from server to ensure consistency
-          await getCart();
+          //   await getCart();
         }
       }
     } catch (e) {

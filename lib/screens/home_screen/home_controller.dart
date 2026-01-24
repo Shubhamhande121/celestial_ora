@@ -20,6 +20,7 @@ class HomeController extends GetxController {
   var trendingList = <dynamic>[].obs;
 
   /// ✅ Category state
+  final selectedCategoryIndex = 0.obs;
   var isLoadingCategories = false.obs;
   var categoriesList = <dynamic>[].obs;
   var baseCategoriesList = <dynamic>[].obs;
@@ -35,7 +36,26 @@ class HomeController extends GetxController {
 
   void increment() => count++;
 
-  /// ✅ Fetch user profile data
+  // 🔹 Store products per category
+  final Map<String, List<dynamic>> categoryProducts = {};
+
+  // 🔹 Pagination state per category
+
+  final Map<String, bool> _hasMore = {};
+
+  // 🔹 UI state
+
+  final products = <dynamic>[].obs;
+
+  final isInitialLoading = false.obs;
+  final isLoadingMore = false.obs;
+
+  static const int limit = 20;
+
+  int currentPage = 1;
+  bool hasMore = true;
+
+  // ✅ Fetch user profile data
   Future<void> fetchUser() async {
     var userId = await SharedPref.getUserId();
     log(">>>User Id $userId");
@@ -131,69 +151,63 @@ class HomeController extends GetxController {
     }
   }
 
-  /// ✅ Fetch products by category ID WITH PAGINATION
-  Future<void> fetchProductsForCategory(String categoryId, {int page = 1, int limit = 20}) async {
-    try {
+  // ================= FETCH =================
+
+  Future<void> fetchProducts(String categoryId, {bool loadMore = false}) async {
+    final page = loadMore ? currentPage + 1 : 1;
+
+    final response = await http.post(
+      Uri.parse(productListByCategoryApi),
+      body: {
+        "category_id": categoryId,
+        "page": page.toString(),
+        "limit": "20",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final newProducts = data['product_list'] ?? [];
+
       if (page == 1) {
-        isLoadingCategoryProducts.value = true;
+        products.value = newProducts;
       } else {
-        isLoadingMoreProducts.value = true;
+        products.addAll(newProducts);
       }
 
-      final response = await http.post(
-        Uri.parse(productListByCategoryApi),
-        body: {
-          "category_id": categoryId,
-          "page": page.toString(), // ✅ ADD PAGINATION
-          "limit": limit.toString(), // ✅ ADD LIMIT
-        },
-      );
+      hasMore = newProducts.length == 20;
+      currentPage = page;
+    }
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 200 && data.containsKey('product_list')) {
-          final newProducts = data['product_list'] ?? [];
-          
-          if (page == 1) {
-            // First page - replace
-            categoryWiseProductMap[categoryId] = newProducts;
-            selectedCategoryProducts.value = newProducts;
-          } else {
-            // Load more - append
-            final currentProducts = categoryWiseProductMap[categoryId] ?? [];
-            categoryWiseProductMap[categoryId] = [...currentProducts, ...newProducts];
-            selectedCategoryProducts.value = [...currentProducts, ...newProducts];
-          }
-          
-          // Check if there are more products
-          hasMoreProducts.value = newProducts.length == limit;
-          currentProductPage.value = page;
-          
-          log("✅ Products loaded for category $categoryId (page $page): ${newProducts.length}");
-        }
-      }
-    } catch (e) {
-      debugPrint("Exception in fetchProductsForCategory($categoryId): $e");
-    } finally {
-      isLoadingCategoryProducts.value = false;
-      isLoadingMoreProducts.value = false;
+    isLoading.value = false;
+  }
+
+  // ================= CACHE HIT =================
+  void switchCategory(String categoryId) {
+    selectedCategoryId.value = categoryId;
+
+    if (categoryProducts.containsKey(categoryId)) {
+      products.value = categoryProducts[categoryId]!;
+    } else {
+      fetchProducts(categoryId);
     }
   }
+
+  bool get hasMoreCurrentCategory => _hasMore[selectedCategoryId.value] ?? true;
 
   /// ✅ Load more products for category
   Future<void> loadMoreProducts(String categoryId) async {
     if (isLoadingMoreProducts.value || !hasMoreProducts.value) return;
-    
-    final nextPage = currentProductPage.value + 1;
-    await fetchProductsForCategory(categoryId, page: nextPage);
+
+    await fetchProducts(categoryId);
   }
 
-  /// ✅ Change category with pagination reset
   void changeCategory(String categoryId) {
-    selectedCategoryId.value = categoryId;
-    currentProductPage.value = 1;
-    hasMoreProducts.value = true;
-    fetchProductsForCategory(categoryId, page: 1);
+    products.clear(); // instant UI clear
+    currentPage = 1;
+    isLoading.value = true;
+    hasMore = true;
+    fetchProducts(categoryId);
   }
 
   Future<void> uploadProfileImage(File imageFile) async {
@@ -213,7 +227,6 @@ class HomeController extends GetxController {
     log(">>> Uploading profile for $uid");
 
     var response = await request.send();
-    var respStr = await response.stream.bytesToString();
 
     if (response.statusCode == 200) {
       log("✅ Upload Success");
@@ -230,10 +243,10 @@ class HomeController extends GetxController {
     // Load user and basic data first
     fetchUser();
     getBannerApi();
-    
+
     // Load trending with limit
     fetchTrendingProducts(limit: 20);
-    
+
     // Load categories without products
     fetchCategories();
   }

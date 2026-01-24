@@ -3,11 +3,18 @@ import 'package:flutter/foundation.dart';
 class ListOfSelectedFilters extends ChangeNotifier {
   final List<String> _selectedCategoryIds = [];
 
-  List<String> get selectedCategoryIds => _selectedCategoryIds;
+  // 🔥 RETURN A NEW LIST
+  List<String> get selectedCategoryIds =>
+      List.unmodifiable(_selectedCategoryIds);
+
+  // 🔥 REQUIRED for API
+  String get selectedIdsAsString => _selectedCategoryIds.join(',');
 
   void addItem(String id) {
-    _selectedCategoryIds.add(id);
-    notifyListeners();
+    if (!_selectedCategoryIds.contains(id)) {
+      _selectedCategoryIds.add(id);
+      notifyListeners();
+    }
   }
 
   void removeItem(String id) {

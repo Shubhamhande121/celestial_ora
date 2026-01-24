@@ -31,6 +31,7 @@ class OrderSummary extends StatefulWidget {
   State<OrderSummary> createState() => _OrderSummaryState();
 }
 
+
 class _OrderSummaryState extends State<OrderSummary> {
   final cartController = Get.find<CartController>();
   final homeController = Get.find<HomeController>();
@@ -53,6 +54,8 @@ class _OrderSummaryState extends State<OrderSummary> {
   String environmentValue = 'UAT_SIM';
   String appId = "";
   String packageName = "com.organic.organic_saga_app";
+
+  
 
   String getBody({
     required String merchantTransactionId,

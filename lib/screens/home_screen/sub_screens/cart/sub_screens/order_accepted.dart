@@ -44,7 +44,7 @@ class _OrderAcceptedState extends State<OrderAccepted> {
                   Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (context) => RootHomeScreen()),
                       (route) => false);
-                  HomeController c = Get.put(HomeController());
+
                   Navigator.of(context)
                       .push(MaterialPageRoute(builder: (context) => Orders()));
                 },

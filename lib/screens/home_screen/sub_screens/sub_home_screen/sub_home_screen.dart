@@ -773,8 +773,8 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => BestSellerWithCategoryScreen(
-                  categories: homeController.baseCategoriesList,
-                  categoryWiseProducts: homeController.categoryWiseProductMap,
+                  // categories: homeController.baseCategoriesList,
+                  // categoryWiseProducts: homeController.categoryWiseProductMap,
                 ),
               ),
             );
@@ -1695,7 +1695,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
 
                 // Add to cart
                 SizedBox(
-                  height: 29.h,
+                  height: 32.h,
                   width: double.infinity,
                   child: productId != null && variantId != null
                       ? _buildCartButton(productId, variantId, isGrid: true)
@@ -1819,7 +1819,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       if (isInCart && quantity > 0) {
         return Container(
           height: isGrid ? 32.h : 36.h,
-          width: isGrid ? double.infinity : 80.w,
+          //  width: isGrid ? double.infinity : 80.w,
           decoration: BoxDecoration(
             color: primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(isGrid ? 8.r : 16.r),
@@ -1850,10 +1850,13 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                         productId, variantId, quantity - 1);
                   }
                 },
-                child: Icon(
-                  Icons.remove,
-                  size: isGrid ? 16.sp : 18.sp,
-                  color: primaryColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Icon(
+                    Icons.remove,
+                    size: isGrid ? 16.sp : 18.sp,
+                    color: primaryColor,
+                  ),
                 ),
               ),
               Text(
@@ -1869,10 +1872,13 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                   cartController.updateQuantity(
                       productId, variantId, quantity + 1);
                 },
-                child: Icon(
-                  Icons.add,
-                  size: isGrid ? 16.sp : 18.sp,
-                  color: primaryColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(
+                    Icons.add,
+                    size: isGrid ? 16.sp : 18.sp,
+                    color: primaryColor,
+                  ),
                 ),
               ),
             ],
