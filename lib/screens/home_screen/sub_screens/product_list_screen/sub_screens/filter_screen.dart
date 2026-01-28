@@ -183,45 +183,46 @@ class _FilterScreenState extends ConsumerState<FilterScreen> {
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 32.h),
-                      Container(
-                        width: double.infinity,
-                        height: 48.h,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF53B175), Color(0xFF4CAF50)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF53B175).withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(12.r),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12.r),
-                            onTap: () {
-                              // Scroll to categories section
-                            },
-                            child: Center(
-                              child: Text(
-                                "Browse Categories",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Container(
+
+                      //   width: double.infinity,
+                      //   height: 48.h,
+                      //   decoration: BoxDecoration(
+                      //     gradient: const LinearGradient(
+                      //       colors: [Color(0xFF53B175), Color(0xFF4CAF50)],
+                      //       begin: Alignment.centerLeft,
+                      //       end: Alignment.centerRight,
+                      //     ),
+                      //     borderRadius: BorderRadius.circular(12.r),
+                      //     boxShadow: [
+                      //       BoxShadow(
+                      //         color: const Color(0xFF53B175).withOpacity(0.3),
+                      //         blurRadius: 10,
+                      //         offset: const Offset(0, 4),
+                      //       ),
+                      //     ],
+                      //   ),
+                      //   child: Material(
+                      //     color: Colors.transparent,
+                      //     borderRadius: BorderRadius.circular(12.r),
+                      //     child: InkWell(
+                      //       borderRadius: BorderRadius.circular(12.r),
+                      //       onTap: () {
+                      //         // Scroll to categories section
+                      //       },
+                      //       child: Center(
+                      //         child: Text(
+                      //           "Browse Categories",
+                      //           style: TextStyle(
+                      //             color: Colors.white,
+                      //             fontSize: 16.sp,
+                      //             fontWeight: FontWeight.w600,
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),

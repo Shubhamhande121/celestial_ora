@@ -14,13 +14,10 @@ import 'package:organic_saga/screens/home_screen/home_controller.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/promocode/promocode.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/sub_screens/order_accepted.dart';
-
 import 'package:organic_saga/shared_pref/shared_pref.dart';
-
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../../constants/constants.dart';
-import 'package:phone_pe_pg/phone_pe_pg.dart' hide PaymentStatus;
-
-import '../../../../payments/phone_pay.dart';
 
 class OrderSummary extends StatefulWidget {
   OrderSummary({Key? key, required this.orderList}) : super(key: key);
@@ -31,159 +28,20 @@ class OrderSummary extends StatefulWidget {
   State<OrderSummary> createState() => _OrderSummaryState();
 }
 
-
 class _OrderSummaryState extends State<OrderSummary> {
   final cartController = Get.find<CartController>();
   final homeController = Get.find<HomeController>();
+  late Razorpay _razorpay;
+
   bool _hasShownInvalidCouponWarning = false;
+  var isLoading = false.obs;
 
-  String body = "";
-  String callback = "organicSaga";
-  String checksum = "c2FndWVzZ2E=";
-  String merchantId = "PGTESTPAYUAT";
-  Map<String, String> headers = {
-    "Content-Type": "application/json",
-    "X-VERIFY": "true"
-  };
-  Map<String, String> pgHeaders = {"Content-Type": "application/json"};
-
-  String apiEndPoint = "/pg/v1/pay";
-  bool enableLogs = true;
-  Object? result;
-  String dropdownValue = 'PG';
-  String environmentValue = 'UAT_SIM';
-  String appId = "";
-  String packageName = "com.organic.organic_saga_app";
-
-  
-
-  String getBody({
-    required String merchantTransactionId,
-    required String merchantUserId,
-    required double amount,
-    required String mobileNumber,
-    bool useWallet = false,
-    double walletBalance = 0.0,
-    String targetApp = "com.phonepe.app",
-  }) {
-    double finalAmount = amount;
-    if (useWallet && walletBalance > 0) {
-      finalAmount = amount - walletBalance;
-      if (finalAmount < 0) {
-        finalAmount = 0;
-      }
-    }
-
-    var body = {
-      "merchantId": "PGTESTPAYUAT",
-      "merchantTransactionId": merchantTransactionId,
-      "merchantUserId": merchantUserId,
-      "amount": (finalAmount * 100).round(),
-      "mobileNumber": mobileNumber,
-      "callbackUrl": "https://your-backend.com/api/payment/callback",
-      "paymentInstrument": {
-        "type": "UPI_INTENT",
-        "targetApp": targetApp,
-      },
-      "deviceContext": {"deviceOS": "ANDROID"}
-    };
-
-    String jsonBody = jsonEncode(body);
-    String base64EncodedBody = base64Encode(utf8.encode(jsonBody));
-    return base64EncodedBody;
-  }
-
-  PhonePePg pePg = PhonePePg(
-    isUAT: true,
-    saltKey: "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399",
-    saltIndex: "1",
-  );
-
-  Map<String, dynamic> _paymentRequest({String? merchantCallBackScheme}) {
-    String generateRandomString(int len) {
-      const chars =
-          'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-      final rnd = Random();
-      return String.fromCharCodes(
-        Iterable.generate(
-          len,
-          (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
-        ),
-      );
-    }
-
-    return {
-      "merchantId": "PGTESTPAYUAT",
-      "merchantTransactionId": generateRandomString(10).toUpperCase(),
-      "merchantUserId": generateRandomString(8).toUpperCase(),
-      "amount": 100, // paise (₹1)
-      "callbackUrl":
-          "https://webhook.site/55d95b9b-bec9-491e-b257-cbaf0ff7aa7e",
-      "mobileNumber": "9769364928",
-      "paymentInstrument": {
-        "type": "PAY_PAGE",
-      },
-    };
-  }
-
-  // PaymentRequest _paymentRequest({String? merchantCallBackScheme}) {
-  //   String generateRandomString(int len) {
-  //     const chars =
-  //         'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  //     Random rnd = Random();
-  //     return String.fromCharCodes(
-  //       Iterable.generate(
-  //           len, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))),
-  //     );
-  //   }
-
-  //   return PaymentRequest(
-  //     amount: 100, // ₹1.00 (amount in paise)
-  //     paymentInstrument: PayPagePaymentInstrument(),
-  //     callbackUrl: "https://webhook.site/55d95b9b-bec9-491e-b257-cbaf0ff7aa7e",
-  //     deviceContext: DeviceContext.getDefaultDeviceContext(
-  //       merchantCallBackScheme: merchantCallBackScheme,
-  //     ),
-  //     merchantId: "PGTESTPAYUAT",
-  //     merchantTransactionId: generateRandomString(10).toUpperCase(),
-  //     merchantUserId: generateRandomString(8).toUpperCase(),
-  //     mobileNumber: "9769364928",
-  //   );
-  // }
-
-  // PaymentRequest _paymentRequest({String? merchantCallBackScheme}) {
-  //   String generateRandomString(int len) {
-  //     const chars =
-  //         'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  //     Random rnd = Random();
-  //     var s = String.fromCharCodes(Iterable.generate(
-  //         len, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
-  //     return s;
-  //   }
-
-  //   PaymentRequest paymentRequest = PaymentRequest(
-  //     amount: 100,
-  //     paymentInstrument: PayPagePaymentInstrument(),
-  //     callbackUrl: "https://webhook.site/55d95b9b-bec9-491e-b257-cbaf0ff7aa7e",
-  //     deviceContext: DeviceContext.getDefaultDeviceContext(
-  //         merchantCallBackScheme: merchantCallBackScheme),
-  //     merchantId: "PGTESTPAYUAT",
-  //     merchantTransactionId: generateRandomString(10).toUpperCase(),
-  //     merchantUserId: generateRandomString(8).toUpperCase(),
-  //     mobileNumber: "9769364928",
-  //   );
-  //   return paymentRequest;
-  // }
-
-  void handleError(error) {
-    setState(() {
-      if (error is Exception) {
-        result = error.toString();
-      } else {
-        result = {"error": error};
-      }
-    });
-  }
+  // Razorpay API Keys - Replace with your actual keys
+  // For testing, you can use these test keys
+  static const String razorpayKey =
+      "rzp_test_1DP5mmOlF5G5ag"; // Replace with your key_id
+  static const String razorpaySecret =
+      "YOUR_SECRET_KEY"; // Replace with your secret key
 
   double getPrice() {
     double price = 0;
@@ -233,7 +91,10 @@ class _OrderSummaryState extends State<OrderSummary> {
   double getFinalAmount() {
     double cartTotal = getPrice();
     double discount = getDiscount();
-    return cartTotal - discount;
+    double finalAmount = cartTotal - discount;
+
+    // Convert to rupees (Razorpay expects amount in paise)
+    return finalAmount;
   }
 
   bool isCouponValid() {
@@ -275,9 +136,6 @@ class _OrderSummaryState extends State<OrderSummary> {
     return (total * gst) / 100;
   }
 
-  var isLoading = false.obs;
-
-// In your _removeProductFromOrderSummary method:
   void _removeProductFromOrderSummary(int index) {
     showWarningDialog(
       () {
@@ -323,7 +181,181 @@ class _OrderSummaryState extends State<OrderSummary> {
     );
   }
 
-  checkoutOrder() async {
+  // Initialize Razorpay
+  void _initializeRazorpay() {
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  // Handle successful payment
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    print("Payment Success: ${response.paymentId}");
+
+    // Complete the checkout process
+    _completeCheckout(response.paymentId!);
+
+    // Navigate to order accepted page
+    Get.off(() => OrderAccepted());
+  }
+
+  // Handle payment failure
+  void _handlePaymentError(PaymentFailureResponse response) {
+    print("Payment Error: ${response.code} - ${response.message}");
+    isLoading.value = false;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Payment failed: ${response.message}"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  // Handle external wallet
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    print("External Wallet: ${response.walletName}");
+    isLoading.value = false;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Payment via ${response.walletName}"),
+      ),
+    );
+  }
+
+  // Open Razorpay checkout
+  void _openRazorpayCheckout() async {
+    print("═══════════════════════════════════════════");
+    print("🎯 RAZORPAY CHECKOUT STARTED");
+    print("═══════════════════════════════════════════");
+
+    try {
+      isLoading.value = true;
+
+      // Test with fixed amount first
+      final amount = 100; // ₹1 for testing
+      print("💰 Amount: $amount paise (₹1)");
+
+      // Use a verified test key
+      final String testKey = "rzp_test_1DP5mmOlF5G5ag";
+      print("🔑 Using Razorpay key: $testKey");
+      print("✅ Key valid: ${testKey.startsWith('rzp_test_')}");
+
+      // Get user info
+      final user = homeController.userModel.value;
+      final contact = user.mobile ?? '9999999999';
+      final email = user.email ?? 'customer@example.com';
+      print("👤 User contact: $contact, email: $email");
+
+      // Create options
+      var options = {
+        'key': testKey,
+        'amount': amount,
+        'name': 'Celestial Ora',
+        'description': 'Test Payment',
+        'prefill': {
+          'contact': contact,
+          'email': email,
+        },
+        'theme': {
+          'color': '#4CAF50',
+          'backdrop_color': '#00000080',
+        }
+      };
+
+      print("⚙️ Options: $options");
+      print("🚀 Calling _razorpay.open()...");
+
+      _razorpay.open(options);
+
+      print("✅ _razorpay.open() called successfully!");
+    } catch (e, stackTrace) {
+      print("❌ ERROR: $e");
+      print("📋 Stack trace: $stackTrace");
+
+      isLoading.value = false;
+
+      // Show detailed error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Payment Error",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 4),
+              Text(e.toString(), style: TextStyle(fontSize: 12)),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } finally {
+      print("═══════════════════════════════════════════");
+      print("🎯 RAZORPAY CHECKOUT COMPLETED");
+      print("═══════════════════════════════════════════");
+    }
+  }
+
+  // Complete checkout after payment
+  void _completeCheckout(String paymentId) async {
+    try {
+      var userId = await SharedPref.getUserId();
+      var request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl/Auth/checkout'));
+
+      Map<String, String> data = {
+        'address_id': cartController.selectedAddress.value["id"].toString(),
+        'user_id': userId!,
+        'payment_id': paymentId,
+        'payment_method': 'razorpay',
+      };
+
+      if (cartController.selectedPromoCode.isNotEmpty) {
+        data['coupon_id'] =
+            cartController.selectedPromoCode.value["id"].toString();
+      }
+
+      request.fields.addAll(data);
+
+      http.StreamedResponse response = await request.send();
+      var res = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        print("Checkout successful: $res");
+        // Clear cart after successful order
+        cartController.clearCart();
+      } else {
+        print("Checkout failed: ${response.reasonPhrase}");
+      }
+
+      isLoading.value = false;
+    } catch (e) {
+      print('Checkout error: $e');
+      isLoading.value = false;
+    }
+  }
+
+  // Place order and initiate payment
+  void _placeOrder() {
+    if (widget.orderList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Your cart is empty")),
+      );
+      return;
+    }
+
+    if (cartController.selectedAddress.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please select an address first")),
+      );
+      return;
+    }
+
     if (!isCouponValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -335,51 +367,20 @@ class _OrderSummaryState extends State<OrderSummary> {
       return;
     }
 
-    isLoading.value = true;
-    var userId = await SharedPref.getUserId();
-    var request =
-        http.MultipartRequest('POST', Uri.parse('$baseUrl/Auth/checkout'));
-    Map<String, String> data = {};
-    if (cartController.selectedPromoCode.isEmpty) {
-      data = {
-        'address_id': cartController.selectedAddress.value["id"].toString(),
-        'coupon_id': '',
-        'user_id': userId!,
-      };
-    } else {
-      data = {
-        'address_id': cartController.selectedAddress.value["id"].toString(),
-        'coupon_id': cartController.selectedPromoCode.value["id"].toString(),
-        'user_id': userId!,
-      };
-    }
-    request.fields.addAll(data);
-
-    try {
-      http.StreamedResponse response = await request.send();
-      var res = await response.stream.bytesToString();
-      if (response.statusCode == 200) {
-        Get.to(() => OrderAccepted());
-        isLoading.value = false;
-      } else {
-        print(response.reasonPhrase);
-        isLoading.value = false;
-      }
-    } catch (e) {
-      print('Checkout error: $e');
-      isLoading.value = false;
-    }
+    // Open Razorpay payment
+    _openRazorpayCheckout();
   }
 
   @override
   void initState() {
     super.initState();
+    _initializeRazorpay();
+
     cartController.selectedAddress.value = {};
     cartController.selectedPromoCode.value = {};
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _removeInvalidCoupon();
-
       cartController.getCart();
     });
   }
@@ -392,17 +393,16 @@ class _OrderSummaryState extends State<OrderSummary> {
     });
   }
 
-  getBase64String(e) {
-    var b = e.toString();
-    var bytes = utf8.encode(b);
-    var base64Str = base64.encode(bytes);
-    return base64Str;
+  @override
+  void dispose() {
+    super.dispose();
+    _razorpay.clear(); // Clear listeners
   }
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       cartController.getCart();
     });
@@ -427,15 +427,11 @@ class _OrderSummaryState extends State<OrderSummary> {
 
             // Promo Code Section
             _buildPromoCodeSection(screenWidth),
-            SizedBox(
-              height: 10.h,
-            ),
+            SizedBox(height: 10.h),
 
             // Delivery Address Section
             _buildDeliveryAddressSection(screenWidth),
-            SizedBox(
-              height: 10.h,
-            ),
+            SizedBox(height: 10.h),
 
             // Wallet Section
             _buildWalletSection(screenWidth),
@@ -449,7 +445,6 @@ class _OrderSummaryState extends State<OrderSummary> {
 
   Widget _buildBottomButton(double screenWidth) {
     return Obx(() {
-      // Wrap the entire button in Obx
       final isButtonEnabled = widget.orderList.isNotEmpty &&
           cartController.selectedAddress.isNotEmpty &&
           isCouponValid();
@@ -472,138 +467,45 @@ class _OrderSummaryState extends State<OrderSummary> {
             color: isButtonEnabled ? primaryColor : Colors.grey.shade400,
             child: InkWell(
               borderRadius: BorderRadius.circular(12.r),
-              onTap: isButtonEnabled
-                  ? () {
-                      if (widget.orderList.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Your cart is empty")),
-                        );
-                        return;
-                      }
-
-                      if (cartController.selectedAddress.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text("Please select an address first")),
-                        );
-                        return;
-                      }
-
-                      if (!isCouponValid()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                "Invalid coupon. Please remove it before placing order."),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PhonePePaymentScreen(
-                            pePg: pePg,
-                            paymentRequest: _paymentRequest(),
-                            onPaymentComplete: (paymentResponse, error) {
-                              Navigator.pop(context);
-
-                              if (paymentResponse?.code ==
-                                  PaymentStatus.success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text("Transaction Successful")),
-                                );
-                                Get.to(() => OrderAccepted());
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text("Transaction Failed")),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                      );
-
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (_) => PhonePePaymentScreen(
-                      //       pePg: pePg,
-                      //       paymentRequest: _paymentRequest(),
-                      //       onPaymentComplete: (paymentResponse, paymentError) {
-                      //         Navigator.pop(context);
-                      //         if (paymentResponse != null &&
-                      //             paymentResponse.code ==
-                      //                 PaymentStatus.success) {
-                      //           ScaffoldMessenger.of(context).showSnackBar(
-                      //             const SnackBar(
-                      //                 content: Text("Transaction Successful")),
-                      //           );
-                      //           Get.to(() => OrderAccepted());
-                      //         } else {
-                      //           ScaffoldMessenger.of(context).showSnackBar(
-                      //             const SnackBar(
-                      //                 content: Text("Transaction Failed")),
-                      //           );
-                      //         }
-                      //       },
-                      //     ),
-                      //   ),
-                      // );
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (_) => PhonePePaymentScreen(
-                      //       pePg: pePg,
-                      //       paymentRequest: _paymentRequest(),
-                      //       onPaymentComplete: (paymentResponse, paymentError) {
-                      //         Navigator.pop(context);
-                      //         if (paymentResponse != null &&
-                      //             paymentResponse.code ==
-                      //                 PaymentStatus.success) {
-                      //           ScaffoldMessenger.of(context).showSnackBar(
-                      //             const SnackBar(
-                      //                 content: Text("Transaction Successful")),
-                      //           );
-                      //           Get.to(() => OrderAccepted());
-                      //         } else {
-                      //           ScaffoldMessenger.of(context).showSnackBar(
-                      //             const SnackBar(
-                      //                 content: Text("Transaction Failed")),
-                      //           );
-                      //         }
-                      //       },
-                      //     ),
-                      //   ),
-                      // );
-                    }
-                  : null, // Disable onTap when button is not enabled
+              onTap: isButtonEnabled ? _placeOrder : null,
               child: Container(
                 width: double.infinity,
                 height: 56.h,
                 alignment: Alignment.center,
-                child: Obx(
-                  () => isLoading.value
-                      ? SizedBox(
-                          width: 24.w,
-                          height: 24.w,
+                child: Obx(() {
+                  if (isLoading.value) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20.w,
+                          height: 20.w,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Colors.white,
                           ),
-                        )
-                      : Text(
-                          "Place Order",
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          "Opening Payment...",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16.sp,
+                            fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                ),
+                      ],
+                    );
+                  }
+                  return Text(
+                    "Proceed to Pay",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }),
               ),
             ),
           ),
@@ -611,6 +513,10 @@ class _OrderSummaryState extends State<OrderSummary> {
       );
     });
   }
+  // [Rest of your existing widget methods remain the same...]
+  // _buildProductsSection, _buildOrderSummaryCard, _buildPromoCodeSection,
+  // _buildDeliveryAddressSection, _buildWalletSection, etc.
+  // All these methods remain unchanged from your original code
 
   Widget _buildProductsSection(double screenWidth) {
     return Padding(
@@ -618,8 +524,21 @@ class _OrderSummaryState extends State<OrderSummary> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //SizedBox(height: 12.h),
+          // 🔥 ADD THIS TEST BUTTON (always show for now)
+          ElevatedButton(
+            onPressed: () {
+              print("Test Razorpay button pressed");
+              _openRazorpayCheckout();
+            },
+            child: Text("TEST RAZORPAY"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+          ),
+
           if (widget.orderList.isEmpty) _buildEmptyCart(),
+
           if (widget.orderList.isNotEmpty)
             ...widget.orderList
                 .asMap()
@@ -633,6 +552,8 @@ class _OrderSummaryState extends State<OrderSummary> {
                       quantity: entry.value["cart_qty"],
                       cost: entry.value["special_price"],
                       imageUrl: entry.value["image"] ?? "",
+                      variantText:
+                          entry.value["variant_text"] ?? "", // Add variant text
                       onDelete: () => _removeProductFromOrderSummary(entry.key),
                     ),
                   ),
@@ -1187,11 +1108,16 @@ class OrderSummaryInfoBuilder extends StatelessWidget {
     required this.quantity,
     required this.cost,
     required this.imageUrl,
+    required this.variantText, // Add this parameter
     this.onDelete,
   }) : super(key: key);
 
   final double screenWidth;
-  final String productName, quantity, cost, imageUrl;
+  final String productName,
+      quantity,
+      cost,
+      imageUrl,
+      variantText; // Add variantText
   final VoidCallback? onDelete;
 
   @override
@@ -1252,6 +1178,19 @@ class OrderSummaryInfoBuilder extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      // Add variant text here
+                      if (variantText.isNotEmpty) ...[
+                        SizedBox(height: 4.h),
+                        Text(
+                          variantText,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey.shade600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       SizedBox(height: 4.h),
                       Container(
                         padding: EdgeInsets.symmetric(

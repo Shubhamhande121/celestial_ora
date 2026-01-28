@@ -61,16 +61,25 @@ dependencies:
   razorpay_flutter: ^1.4.0
 
   pinput: ^6.0.1
+  photo_view: ^0.15.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
 flutter_launcher_icons:
-  android: "ic_launcher"
+  android: true
   ios: true
-  image_path: "assets/images/logo.png"
   remove_alpha_ios: true
+
+  # Fallback (required, even for adaptive icons)
+  image_path: assets/images/logo.png
+
+  # Adaptive icon (Android 8+)
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/images/logo_foreground.png
+
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

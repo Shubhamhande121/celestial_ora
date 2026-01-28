@@ -44,7 +44,7 @@ class CartController extends GetxController {
 
   /// NEW: Add to cart with immediate reactive update
   void addToCartReactive(
-      String productId, int qty, String variantId, BuildContext context) {
+      String productId, int qty, String variantId, BuildContext context) async {
     final key = '$productId-$variantId';
     final currentQuantity = localCartItems[key] ?? 0;
     final newQuantity = currentQuantity + qty;

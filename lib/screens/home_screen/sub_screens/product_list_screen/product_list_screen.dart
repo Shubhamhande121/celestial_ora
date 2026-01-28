@@ -259,33 +259,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
         ? baseProductImageUrl + product["productimage"]
         : "";
 
-    return GestureDetector(
-      onTap: () {
-        if (productId != null) {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => ProductDisplayScreen(id: productId),
-          ));
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
-          border: Border.all(color: const Color(0xFFE2E2E2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ✅ FIX: Optimized Image with CachedNetworkImage
-            Expanded(
-              flex: 3,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFE2E2E2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 👇 IMAGE CLICK ONLY
+          Expanded(
+            flex: 3,
+            child: GestureDetector(
+              onTap: () {
+                if (productId != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ProductDisplayScreen(id: productId),
+                    ),
+                  );
+                }
+              },
               child: ClipRRect(
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(12.r),
@@ -297,163 +299,256 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           imageUrl: imageUrl,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey.shade200,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(primaryColor),
-                              ),
+                          placeholder: (context, url) => Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(primaryColor),
                             ),
                           ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey.shade200,
-                            child: const Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.broken_image),
                         )
-                      : Center(
-                          child: Icon(
-                            Icons.image_not_supported,
-                            size: 40.sp,
-                            color: Colors.grey.shade400,
-                          ),
+                      : Icon(
+                          Icons.image_not_supported,
+                          size: 40.sp,
+                          color: Colors.grey.shade400,
                         ),
                 ),
               ),
             ),
+          ),
 
-            // Product Info
-            Padding(
-              padding: EdgeInsets.all(8.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product["productname"]?.toString() ?? "Product",
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12.sp,
-                      height: 1.3,
+          // 👇 TEXT + BUTTON (NOT CLICKABLE)
+          Padding(
+            padding: EdgeInsets.all(8.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product["productname"]?.toString() ?? "Product",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12.sp,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (variant != null)
+                          Text(
+                            "$indianRupeeSymbol ${variant['special_price'] ?? variant['price']}",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        if (!hasStock)
+                          Text(
+                            "Out of Stock",
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: Colors.red,
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 6.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (variant != null)
-                            Text(
-                              "$indianRupeeSymbol ${variant['special_price'] ?? variant['price']}",
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          if (!hasStock)
-                            Text(
-                              "Out of Stock",
-                              style: TextStyle(
-                                fontSize: 11.sp,
-                                color: Colors.red,
-                              ),
-                            ),
-                        ],
-                      ),
-                      if (hasStock && productId != null && variantId != null)
-                        _buildAddToCartButton(productId, variantId),
-                    ],
-                  ),
-                ],
-              ),
+                    if (hasStock && productId != null && variantId != null)
+                      _buildAddToCartButton(
+                          productId: productId, variantId: variantId),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildAddToCartButton(String productId, String variantId) {
+  Widget _buildAddToCartButton({
+    required String productId,
+    required String variantId,
+    bool isGrid = false,
+  }) {
     return Obx(() {
-      final isInCart = cartController.isInCart(productId, variantId);
-      final quantity = cartController.getQuantity(productId, variantId);
+      // ✅ Direct reactive check that Obx can track
+      final key = '$productId-$variantId';
+      final isInCart = cartController.localCartItems.containsKey(key) &&
+          (cartController.localCartItems[key] ?? 0) > 0;
 
-      if (isInCart && quantity > 0) {
-        return Container(
-          width: 80.w,
-          height: 32.h,
+      final height = isGrid ? 28.h : 36.h;
+
+      return GestureDetector(
+        onTap: () async {
+          // Get fresh value
+          final currentKey = '$productId-$variantId';
+          final currentIsInCart =
+              cartController.localCartItems.containsKey(currentKey) &&
+                  (cartController.localCartItems[currentKey] ?? 0) > 0;
+
+          if (currentIsInCart) {
+            // Remove from cart
+            cartController.localCartItems.remove(currentKey);
+            // The .obs map will automatically notify Obx
+
+            // Also remove from server cart if exists
+            final cartItem = cartController.cartList.firstWhereOrNull(
+              (item) =>
+                  item['product_id']?.toString() == productId &&
+                  item['pv_id']?.toString() == variantId,
+            );
+
+            if (cartItem != null && cartItem['cart_id'] != null) {
+              await cartController
+                  .removeFromCart(cartItem['cart_id'].toString());
+            }
+          } else {
+            // Add to cart
+            await cartController.addToCart(productId, 1, variantId, context);
+          }
+        },
+        child: Container(
+          height: height,
+          width: isGrid ? double.infinity : null,
           decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: primaryColor),
+            gradient: isInCart
+                ? LinearGradient(
+                    colors: [Colors.red.shade50, Colors.white],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : LinearGradient(
+                    colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            borderRadius: BorderRadius.circular(isGrid ? 8.r : 10.r),
+            border: isInCart
+                ? Border.all(color: Colors.red.shade300, width: 1.5)
+                : null,
+            boxShadow: isInCart
+                ? [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.1),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  cartController.updateQuantity(
-                      productId, variantId, quantity - 1);
-                },
-                child: Icon(
-                  Icons.remove,
-                  size: 16.sp,
-                  color: primaryColor,
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isInCart
+                      ? Icons.remove_shopping_cart
+                      : Icons.add_shopping_cart,
+                  color: isInCart ? Colors.red.shade600 : Colors.white,
+                  size: isGrid ? 12.sp : 16.sp,
                 ),
-              ),
-              Text(
-                quantity.toString(),
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
+                SizedBox(width: 6.w),
+                Text(
+                  isInCart ? "Remove" : "Add to cart",
+                  style: TextStyle(
+                    color: isInCart ? Colors.red.shade600 : Colors.white,
+                    fontSize: isGrid ? 10.sp : 10.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  cartController.updateQuantity(
-                      productId, variantId, quantity + 1);
-                },
-                child: Icon(
-                  Icons.add,
-                  size: 16.sp,
-                  color: primaryColor,
-                ),
-              ),
-            ],
-          ),
-        );
-      } else {
-        return InkWell(
-          onTap: () {
-            cartController.addToCartReactive(productId, 1, variantId, context);
-          },
-          child: Container(
-            height: 36.h,
-            width: 36.w,
-            decoration: BoxDecoration(
-              color: primaryColor,
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 18.sp,
+              ],
             ),
           ),
-        );
-      }
+        ),
+      );
     });
   }
+  // Widget _buildAddToCartButton(String productId, String variantId) {
+  //   return Obx(() {
+  //     final isInCart = cartController.isInCart(productId, variantId);
+  //     final quantity = cartController.getQuantity(productId, variantId);
+
+  //     if (isInCart && quantity > 0) {
+  //       return Container(
+  //         width: 80.w,
+  //         height: 32.h,
+  //         decoration: BoxDecoration(
+  //           color: primaryColor.withOpacity(0.1),
+  //           borderRadius: BorderRadius.circular(16.r),
+  //           border: Border.all(color: primaryColor),
+  //         ),
+  //         child: Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //           children: [
+  //             GestureDetector(
+  //               onTap: () {
+  //                 cartController.updateQuantity(
+  //                     productId, variantId, quantity - 1);
+  //               },
+  //               child: Icon(
+  //                 Icons.remove,
+  //                 size: 16.sp,
+  //                 color: primaryColor,
+  //               ),
+  //             ),
+  //             Text(
+  //               quantity.toString(),
+  //               style: TextStyle(
+  //                 fontSize: 14.sp,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: primaryColor,
+  //               ),
+  //             ),
+  //             GestureDetector(
+  //               onTap: () {
+  //                 cartController.updateQuantity(
+  //                     productId, variantId, quantity + 1);
+  //               },
+  //               child: Icon(
+  //                 Icons.add,
+  //                 size: 16.sp,
+  //                 color: primaryColor,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     } else {
+  //       return InkWell(
+  //         onTap: () {
+  //           cartController.addToCartReactive(productId, 1, variantId, context);
+  //         },
+  //         child: Container(
+  //           height: 36.h,
+  //           width: 36.w,
+  //           decoration: BoxDecoration(
+  //             color: primaryColor,
+  //             borderRadius: BorderRadius.circular(12.r),
+  //           ),
+  //           child: Icon(
+  //             Icons.add,
+  //             color: Colors.white,
+  //             size: 18.sp,
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //   });
+  // }
 
   Widget _buildShimmerGrid() {
     return GridView.builder(
