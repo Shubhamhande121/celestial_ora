@@ -1761,6 +1761,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
   // }
 
   Widget _buildAllProductsGrid() {
+     
     return Obx(() {
       final products = homeController.trendingList;
 

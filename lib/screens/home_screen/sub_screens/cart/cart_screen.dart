@@ -64,11 +64,10 @@ class _CartState extends State<Cart> {
                       !isOutOfStock && currentQty > variantStockValue;
 
                   return ModernCartItem(
-                    qty: currentQty,
-                    isOutOfStock: isOutOfStock,
-                    exceedsStock: exceedsStock,
-                    availableStock: variantStockValue,
+                    qty: int.tryParse(item["cart_qty"] ?? "1") ?? 1,
                     // In the onRemove callback in Cart screen
+                    // In your Cart screen, update the onRemove callback:
+// In your Cart screen, update the onRemove callback:
                     onRemove: () {
                       showWarningDialog(
                         () {

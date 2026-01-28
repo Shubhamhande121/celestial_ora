@@ -15,14 +15,12 @@ class PrivacyPolicy extends StatefulWidget {
 
 class _PrivacyPolicyState extends State<PrivacyPolicy> {
   late Future<String> _privacyFuture;
-  
 
   @override
   void initState() {
     super.initState();
     _privacyFuture = _getPrivacyPolicy();
   }
-  
 
   Future<String> _getPrivacyPolicy() async {
     try {
