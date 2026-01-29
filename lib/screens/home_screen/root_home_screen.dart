@@ -131,27 +131,32 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
                             //         cartController.isCartCount.value > 0) ||
                             //     (index == 3 &&
                             //         wishlistController.wishlistCount.value > 0))
-                            //   Positioned(
-                            //     top: -6,
-                            //     right: -3,
-                            //     child: CircleAvatar(
-                            //       radius: 10,
-                            //       backgroundColor:
-                            //           isSelected ? primaryColor : Colors.grey,
-                            //       child: Text(
-                            //         index == 3
-                            //             ? wishlistController.wishlistCount.value
-                            //                 .toString()
-                            //             : cartController.isCartCount.value
-                            //                 .toString(),
-                            //         style: const TextStyle(
-                            //           color: Colors.white,
-                            //           fontSize: 12,
-                            //           fontWeight: FontWeight.bold,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
+
+                            if (index == 2 &&
+                                wishlistController.wishlistCount.value > 0)
+                              Positioned(
+                                top: -6,
+                                right: -3,
+                                child: CircleAvatar(
+                                  radius: 10,
+                                  backgroundColor:
+                                      isSelected ? primaryColor : Colors.grey,
+                                  child: Text(
+                                    wishlistController.wishlistCount.value
+                                        .toString(),
+                                    // index == 3
+                                    //     ? wishlistController.wishlistCount.value
+                                    //         .toString()
+                                    //     : cartController.isCartCount.value
+                                    //         .toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 4),
