@@ -248,7 +248,7 @@ class HomeController extends GetxController {
     fetchTrendingProducts(limit: 20);
 
     // Load categories without products
-    fetchCategories();
+    // fetchCategories();
   }
 
   /// (Optional) FCM Token

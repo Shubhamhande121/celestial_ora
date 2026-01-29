@@ -9,6 +9,7 @@ import 'package:organic_saga/constants/baseUrl.dart';
 import 'package:organic_saga/constants/constants.dart';
 import 'package:organic_saga/screens/home_screen/home_controller.dart';
 import 'package:organic_saga/screens/home_screen/search_screens/search_screen.dart';
+import 'package:organic_saga/screens/home_screen/sub_screens/account/account.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/notifications/notification_controller.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/notifications/notifications.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
@@ -128,16 +129,56 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       resizeToAvoidBottomInset: false, // ✅ FIX: Prevents unnecessary resizing
       appBar: ThemedAppBar(
         title: "Celestial Ora",
-        actions: [_buildNotificationIcon()],
+        cartCount: cartController.cartList.length,
+        onCartTap: () {
+          // Get.to(() => CartScreen());
+        },
+        onSearchTap: () {
+          // open search screen
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.9,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20.r),
+                    topRight: Radius.circular(20.r),
+                  ),
+                ),
+                child: SearchBottomSheet(),
+              );
+            },
+          );
+        },
       ),
+
+      //  ThemedAppBar(
+      //   title: "Celestial Ora",
+      //   actions: [
+      //     IconButton(
+      //       icon: Icon(
+      //         Icons.account_circle_outlined,
+      //         color: Colors.white,
+      //       ),
+      //       onPressed: () {
+      //         Get.to(() => Account());
+      //       },
+      //     ),
+      //     _buildNotificationIcon()
+      //   ],
+      // ),
       body: Stack(
         children: [
           Container(color: Colors.white),
           SafeArea(
             child: Column(
               children: [
-                SizedBox(height: 15.h),
-                _buildSearchBar(),
+                // SizedBox(height: 15.h),
+                // _buildSearchBar(),
                 SizedBox(height: 10.h),
                 Expanded(
                   child: _buildMainContent(),
@@ -266,16 +307,16 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
         physics: const BouncingScrollPhysics(),
         slivers: [
           // ✅ FIX: Marquee Banner
-          SliverToBoxAdapter(child: _buildMarqueeBanner()),
+          // SliverToBoxAdapter(child: _buildMarqueeBanner()),
 
           // ✅ FIX: Shop by Category
-          SliverToBoxAdapter(child: _buildCategoriesSection()),
+          // SliverToBoxAdapter(child: _buildCategoriesSection()),
 
           // ✅ FIX: Banner Carousel
           SliverToBoxAdapter(child: _buildBannerCarousel()),
 
           // ✅ FIX: View More Button for Banner
-          SliverToBoxAdapter(child: _buildViewMoreButton()),
+          // SliverToBoxAdapter(child: _buildViewMoreButton()),
 
           // ✅ FIX: Trending Products (Horizontal)
           SliverToBoxAdapter(child: _buildTrendingProductsSection()),
@@ -294,7 +335,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
           _buildAllProductsGrid(),
 
           // ✅ FIX: Shop by Category (Rectangle)
-          SliverToBoxAdapter(child: _buildRectangleCategoriesSection()),
+          // SliverToBoxAdapter(child: _buildRectangleCategoriesSection()),
 
           // Add some bottom padding
           SliverToBoxAdapter(child: SizedBox(height: 80.h)),
@@ -588,110 +629,287 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
   }
 
   Widget _buildBannerCarousel() {
+    final RxInt currentIndex = 0.obs;
+
     return Obx(() {
       final banners = homeController.bestSellerList;
 
+      if (banners.isEmpty) {
+        return Container(
+          width: MediaQuery.of(context).size.width,
+          height: 160.h,
+          margin: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(18.r),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image_outlined,
+                    size: 42, color: Colors.grey.shade400),
+                SizedBox(height: 8.h),
+                Text(
+                  "No banners available",
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      final PageController pageController =
+          PageController(viewportFraction: 0.92);
+
+      // 🔥 Auto Slide
+      Future.delayed(const Duration(seconds: 3), () {
+        if (pageController.hasClients && banners.isNotEmpty) {
+          int nextPage = (currentIndex.value + 1) % banners.length;
+          pageController.animateToPage(
+            nextPage,
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+
       return Container(
         width: MediaQuery.of(context).size.width,
-        height: 200.h,
+        height: 175.h,
         margin: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(18.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
+              color: Colors.black.withOpacity(0.10),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: banners.isEmpty
-            // 🌿 Elegant Empty State
-            ? Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.image_outlined,
-                          size: 40, color: Colors.grey.shade400),
-                      SizedBox(height: 8.h),
-                      Text(
-                        "No banners available",
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18.r),
+          child: Stack(
+            children: [
+              // 🌸 Banner Slider
+              PageView.builder(
+                controller: pageController,
+                itemCount: banners.length,
+                onPageChanged: (index) => currentIndex.value = index,
+                itemBuilder: (context, index) {
+                  final banner = banners[index];
+                  final imageUrl = banner['image'] != null
+                      ? baseSliderImageUrl + banner['image']
+                      : null;
 
-            // 🌸 Banner Carousel
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(16.r),
-                child: PageView.builder(
-                  controller: PageController(viewportFraction: 0.95),
-                  itemCount: banners.length,
-                  itemBuilder: (context, index) {
-                    final banner = banners[index];
-                    final imageUrl = banner['image'] != null
-                        ? baseSliderImageUrl + banner['image']
-                        : null;
-
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4.w),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14.r),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            imageUrl != null
-                                ? CachedNetworkImage(
-                                    imageUrl: imageUrl,
-                                    fit: BoxFit.fill,
-                                    height: double.infinity,
-                                    placeholder: (context, url) => Container(
-                                      color: Colors.grey.shade200,
+                  return Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 5.w, vertical: 6.h),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.r),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // 🔥 Better look with cover
+                          imageUrl != null
+                              ? CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                    color: Colors.grey.shade100,
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image,
+                                          color: Colors.grey),
                                     ),
-                                    errorWidget: (context, url, error) =>
-                                        Container(
-                                      color: Colors.grey.shade100,
-                                      child: const Center(
-                                        child: Icon(Icons.broken_image,
-                                            color: Colors.grey),
-                                      ),
-                                    ),
-                                  )
-                                : Container(color: Colors.grey.shade100),
+                                  ),
+                                )
+                              : Container(color: Colors.grey.shade100),
 
-                            // ✨ Soft gradient overlay (luxury feel)
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(0.15),
-                                    Colors.transparent,
-                                  ],
-                                ),
+                          // ✨ Luxury gradient overlay
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.35),
+                                  Colors.transparent,
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+
+                          // 🌟 Optional: Small “Shop Now” Tag
+                          // Positioned(
+                          //   bottom: 12.h,
+                          //   left: 12.w,
+                          //   child: Container(
+                          //     padding: EdgeInsets.symmetric(
+                          //         horizontal: 12.w, vertical: 6.h),
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.white.withOpacity(0.88),
+                          //       borderRadius: BorderRadius.circular(12.r),
+                          //     ),
+                          //     child: Text(
+                          //       "Shop Now",
+                          //       style: TextStyle(
+                          //         fontSize: 12.sp,
+                          //         fontWeight: FontWeight.w600,
+                          //         color: Colors.black87,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // 🔘 Dots Indicator
+              Positioned(
+                bottom: 10.h,
+                right: 14.w,
+                child: Row(
+                  children: List.generate(banners.length, (index) {
+                    final isActive = currentIndex.value == index;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: EdgeInsets.symmetric(horizontal: 3.w),
+                      height: 6.h,
+                      width: isActive ? 18.w : 6.w,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20.r),
                       ),
                     );
-                  },
+                  }),
                 ),
               ),
+            ],
+          ),
+        ),
       );
     });
   }
+
+  // Widget _buildBannerCarousel() {
+  //   return Obx(() {
+  //     final banners = homeController.bestSellerList;
+
+  //     return Container(
+  //       width: MediaQuery.of(context).size.width,
+  //       height: 150.h,
+  //       margin: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+  //       decoration: BoxDecoration(
+  //         borderRadius: BorderRadius.circular(16.r),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: Colors.black.withOpacity(0.08),
+  //             blurRadius: 14,
+  //             offset: const Offset(0, 6),
+  //           ),
+  //         ],
+  //       ),
+  //       child: banners.isEmpty
+  //           // 🌿 Elegant Empty State
+  //           ? Container(
+  //               decoration: BoxDecoration(
+  //                 color: Colors.grey.shade100,
+  //                 borderRadius: BorderRadius.circular(16.r),
+  //               ),
+  //               child: Center(
+  //                 child: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     Icon(Icons.image_outlined,
+  //                         size: 40, color: Colors.grey.shade400),
+  //                     SizedBox(height: 8.h),
+  //                     Text(
+  //                       "No banners available",
+  //                       style: TextStyle(
+  //                         color: Colors.grey.shade600,
+  //                         fontSize: 14.sp,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             )
+
+  //           // 🌸 Banner Carousel
+  //           : ClipRRect(
+  //               borderRadius: BorderRadius.circular(16.r),
+  //               child: PageView.builder(
+  //                 controller: PageController(viewportFraction: 0.95),
+  //                 itemCount: banners.length,
+  //                 itemBuilder: (context, index) {
+  //                   final banner = banners[index];
+  //                   final imageUrl = banner['image'] != null
+  //                       ? baseSliderImageUrl + banner['image']
+  //                       : null;
+
+  //                   return Padding(
+  //                     padding: EdgeInsets.symmetric(horizontal: 4.w),
+  //                     child: ClipRRect(
+  //                       borderRadius: BorderRadius.circular(14.r),
+  //                       child: Stack(
+  //                         fit: StackFit.expand,
+  //                         children: [
+  //                           imageUrl != null
+  //                               ? CachedNetworkImage(
+  //                                   imageUrl: imageUrl,
+  //                                   fit: BoxFit.contain,
+  //                                   height: double.infinity,
+  //                                   placeholder: (context, url) => Container(
+  //                                     color: Colors.grey.shade200,
+  //                                   ),
+  //                                   errorWidget: (context, url, error) =>
+  //                                       Container(
+  //                                     color: Colors.grey.shade100,
+  //                                     child: const Center(
+  //                                       child: Icon(Icons.broken_image,
+  //                                           color: Colors.grey),
+  //                                     ),
+  //                                   ),
+  //                                 )
+  //                               : Container(color: Colors.grey.shade100),
+
+  //                           // ✨ Soft gradient overlay (luxury feel)
+  //                           Container(
+  //                             decoration: BoxDecoration(
+  //                               gradient: LinearGradient(
+  //                                 begin: Alignment.bottomCenter,
+  //                                 end: Alignment.topCenter,
+  //                                 colors: [
+  //                                   Colors.black.withOpacity(0.15),
+  //                                   Colors.transparent,
+  //                                 ],
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   );
+  //                 },
+  //               ),
+  //             ),
+  //     );
+  //   });
+  // }
 
   // Widget _buildBannerCarousel() {
   //   return Obx(() {
@@ -773,9 +991,9 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => BestSellerWithCategoryScreen(
-                  // categories: homeController.baseCategoriesList,
-                  // categoryWiseProducts: homeController.categoryWiseProductMap,
-                ),
+                    // categories: homeController.baseCategoriesList,
+                    // categoryWiseProducts: homeController.categoryWiseProductMap,
+                    ),
               ),
             );
           },
@@ -885,6 +1103,13 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
         ? baseProductImageUrl + product["productimage"]
         : null;
 
+    // ✅ ADD: Check if variant is out of stock
+    final variantStock =
+        variants != null && variants is List && variants.isNotEmpty
+            ? int.tryParse(variants[0]["stock"]?.toString() ?? "0") ?? 0
+            : 0;
+    final isOutOfStock = variantStock <= 0;
+
     return SizedBox(
       width: 180.w,
       child: Container(
@@ -903,7 +1128,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🌸 Product Image
+            // 🌸 Product Image with Out of Stock Overlay
             Expanded(
               flex: 3,
               child: Stack(
@@ -960,6 +1185,34 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                       ),
                     ),
                   ),
+
+                  // ✅ ADD: Out of Stock Overlay
+                  if (isOutOfStock)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.4),
+                        child: Center(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Text(
+                              "Out of Stock",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -977,6 +1230,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                     style: TextStyle(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w600,
+                      color: isOutOfStock ? Colors.grey : Colors.black,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -987,18 +1241,37 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
-                      color: secondaryColor,
+                      color: isOutOfStock ? Colors.grey : secondaryColor,
                     ),
                   ),
                   SizedBox(height: 8.h),
 
-                  // 🛒 Add to cart
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: (variantId != null && productId != null)
-                        ? _buildCartButton(productId, variantId)
-                        : const SizedBox(),
-                  ),
+                  // 🛒 Add to cart / Remove from cart button
+                  if (variantId != null && productId != null)
+                    _buildAddToCartButton(
+                      productId: productId,
+                      variantId: variantId,
+                      isOutOfStock: isOutOfStock,
+                      availableStock: variantStock,
+                    )
+                  else
+                    Container(
+                      height: 36.h,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Unavailable",
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1007,6 +1280,263 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       ),
     );
   }
+
+  Widget _buildAddToCartButton({
+    required String productId,
+    required String variantId,
+    bool isOutOfStock = false,
+    int availableStock = 0,
+    bool isGrid = false,
+  }) {
+    return Obx(() {
+      // ✅ Direct reactive check that Obx can track
+      final key = '$productId-$variantId';
+      final isInCart = cartController.localCartItems.containsKey(key) &&
+          (cartController.localCartItems[key] ?? 0) > 0;
+
+      final height = isGrid ? 28.h : 36.h;
+
+      return GestureDetector(
+        onTap: isOutOfStock
+            ? null
+            : () async {
+                // ✅ ADD: Check if current cart quantity exceeds available stock
+                final currentQuantity = cartController.localCartItems[key] ?? 0;
+                if (currentQuantity >= availableStock && availableStock > 0) {
+                  Get.snackbar(
+                    "Out of Stock",
+                    "Only $availableStock items available",
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                  );
+                  return;
+                }
+
+                // Get fresh value
+                final currentKey = '$productId-$variantId';
+                final currentIsInCart =
+                    cartController.localCartItems.containsKey(currentKey) &&
+                        (cartController.localCartItems[currentKey] ?? 0) > 0;
+
+                if (currentIsInCart) {
+                  // Remove from cart
+                  cartController.localCartItems.remove(currentKey);
+                  // The .obs map will automatically notify Obx
+
+                  // Also remove from server cart if exists
+                  final cartItem = cartController.cartList.firstWhereOrNull(
+                    (item) =>
+                        item['product_id']?.toString() == productId &&
+                        item['pv_id']?.toString() == variantId,
+                  );
+
+                  if (cartItem != null && cartItem['cart_id'] != null) {
+                    await cartController
+                        .removeFromCart(cartItem['cart_id'].toString());
+                  }
+                } else {
+                  // Add to cart
+                  await cartController.addToCart(
+                      productId, 1, variantId, context);
+                }
+              },
+        child: Container(
+          height: height,
+          width: isGrid ? double.infinity : null,
+          decoration: BoxDecoration(
+            color: isOutOfStock
+                ? Colors.grey.shade200
+                : (isInCart ? Colors.red.shade50 : primaryColor),
+            borderRadius: BorderRadius.circular(isGrid ? 8.r : 8.r),
+            border: isOutOfStock
+                ? Border.all(color: Colors.grey.shade300, width: 1)
+                : (isInCart ? Border.all(color: Colors.red, width: 1) : null),
+          ),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isInCart
+                      ? Icons.remove_shopping_cart
+                      : Icons.add_shopping_cart,
+                  color: isOutOfStock
+                      ? Colors.grey.shade400
+                      : (isInCart ? Colors.red : Colors.white),
+                  size: isGrid ? 12.sp : 16.sp,
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  isOutOfStock
+                      ? "Out of Stock"
+                      : (isInCart ? "Remove" : "Add to Cart"),
+                  style: TextStyle(
+                    color: isOutOfStock
+                        ? Colors.grey.shade500
+                        : (isInCart ? Colors.red : Colors.white),
+                    fontSize: isGrid ? 11.sp : 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+  // Widget _buildAddToCartButton({
+  //   required String productId,
+  //   required String variantId,
+  //   bool isGrid = false,
+  // }) {
+  //   return Obx(() {
+  //     // ✅ Direct reactive check that Obx can track
+  //     final key = '$productId-$variantId';
+  //     final isInCart = cartController.localCartItems.containsKey(key) &&
+  //         (cartController.localCartItems[key] ?? 0) > 0;
+
+  //     final height = isGrid ? 28.h : 36.h;
+
+  //     return GestureDetector(
+  //       onTap: () async {
+  //         // Get fresh value
+  //         final currentKey = '$productId-$variantId';
+  //         final currentIsInCart =
+  //             cartController.localCartItems.containsKey(currentKey) &&
+  //                 (cartController.localCartItems[currentKey] ?? 0) > 0;
+
+  //         if (currentIsInCart) {
+  //           // Remove from cart
+  //           cartController.localCartItems.remove(currentKey);
+  //           // The .obs map will automatically notify Obx
+
+  //           // Also remove from server cart if exists
+  //           final cartItem = cartController.cartList.firstWhereOrNull(
+  //             (item) =>
+  //                 item['product_id']?.toString() == productId &&
+  //                 item['pv_id']?.toString() == variantId,
+  //           );
+
+  //           if (cartItem != null && cartItem['cart_id'] != null) {
+  //             await cartController
+  //                 .removeFromCart(cartItem['cart_id'].toString());
+  //           }
+  //         } else {
+  //           // Add to cart
+  //           await cartController.addToCart(productId, 1, variantId, context);
+  //         }
+  //       },
+  //       child: Container(
+  //         height: height,
+  //         width: isGrid ? double.infinity : null,
+  //         decoration: BoxDecoration(
+  //           color: isInCart ? Colors.red.shade50 : primaryColor,
+  //           borderRadius: BorderRadius.circular(isGrid ? 8.r : 8.r),
+  //           border: isInCart ? Border.all(color: Colors.red, width: 1) : null,
+  //         ),
+  //         child: Center(
+  //           child: Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: [
+  //               Icon(
+  //                 isInCart
+  //                     ? Icons.remove_shopping_cart
+  //                     : Icons.add_shopping_cart,
+  //                 color: isInCart ? Colors.red : Colors.white,
+  //                 size: isGrid ? 12.sp : 16.sp,
+  //               ),
+  //               SizedBox(width: 6.w),
+  //               Text(
+  //                 isInCart ? "Remove" : "Add to Cart",
+  //                 style: TextStyle(
+  //                   color: isInCart ? Colors.red : Colors.white,
+  //                   fontSize: isGrid ? 11.sp : 12.sp,
+  //                   fontWeight: FontWeight.w600,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     );
+  //   });
+  // }
+
+  // Widget _buildAddToCartButton({
+  //   required String productId,
+  //   required String variantId,
+  //   bool isGrid = false,
+  // }) {
+  //   return Obx(() {
+  //     // final isInCart = cartController.isInCart(productId, variantId);
+
+  //     // Direct reactive check on cartList.obs
+  //     final isInCart = cartController.cartList.any((item) =>
+  //         item['product_id']?.toString() == productId &&
+  //         item['pv_id']?.toString() == variantId);
+  //     final height = isGrid ? 28.h : 36.h;
+
+  //     return GestureDetector(
+  //       onTap: () async {
+  //         // Get current state
+  //         final currentIsInCart = cartController.cartList.any((item) =>
+  //             item['product_id']?.toString() == productId &&
+  //             item['pv_id']?.toString() == variantId);
+
+  //         if (currentIsInCart) {
+  //           final cartItem = cartController.cartList.firstWhereOrNull(
+  //             (item) =>
+  //                 item['product_id']?.toString() == productId &&
+  //                 item['pv_id']?.toString() == variantId,
+  //           );
+
+  //           if (cartItem != null) {
+  //             await cartController
+  //                 .removeFromCart(cartItem['cart_id'].toString());
+  //             // ✅ The .obs list will automatically trigger Obx rebuild
+  //           }
+  //         } else {
+  //           cartController.addToCartReactive(productId, 1, variantId, context);
+  //           // ✅ The .obs list will automatically trigger Obx rebuild
+  //         }
+  //       },
+  //       child: Container(
+  //         height: height,
+  //         width: isGrid ? double.infinity : null,
+  //         decoration: BoxDecoration(
+  //           color: isInCart ? Colors.red.shade50 : primaryColor,
+  //           borderRadius: BorderRadius.circular(isGrid ? 8.r : 8.r),
+  //           border: isInCart ? Border.all(color: Colors.red, width: 1) : null,
+  //         ),
+  //         child: Center(
+  //           child: Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: [
+  //               Icon(
+  //                 isInCart
+  //                     ? Icons.remove_shopping_cart
+  //                     : Icons.add_shopping_cart,
+  //                 color: isInCart ? Colors.red : Colors.white,
+  //                 size: isGrid ? 12.sp : 16.sp,
+  //               ),
+  //               SizedBox(width: 6.w),
+  //               Text(
+  //                 isInCart ? "Remove" : "Add to Cart",
+  //                 style: TextStyle(
+  //                   color: isInCart ? Colors.red : Colors.white,
+  //                   fontSize: isGrid ? 11.sp : 12.sp,
+  //                   fontWeight: FontWeight.w600,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     );
+  //   });
+  // }
 
   Widget _buildBestSellingSection() {
     return Container(
@@ -1189,6 +1719,13 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
         : null;
 
     final variants = product["variant"] ?? [];
+    final variant = variants.isNotEmpty ? variants[0] : null;
+
+    // ✅ ADD: Check if variant is out of stock
+    final variantStock = variant != null
+        ? int.tryParse(variant["stock"]?.toString() ?? "0") ?? 0
+        : 0;
+    final isOutOfStock = variantStock <= 0;
 
     return GestureDetector(
       onTap: () {
@@ -1216,7 +1753,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🌸 IMAGE + WISHLIST
+            // 🌸 IMAGE + WISHLIST + Out of Stock Overlay
             Stack(
               children: [
                 ClipRRect(
@@ -1228,8 +1765,8 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.pink.shade50,
-                          Colors.orange.shade50,
+                          Colors.white,
+                          Colors.white,
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -1238,7 +1775,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                     child: imageUrl != null
                         ? CachedNetworkImage(
                             imageUrl: imageUrl,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                             placeholder: (_, __) => Container(
                               color: Colors.grey.shade200,
                             ),
@@ -1253,6 +1790,31 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                           ),
                   ),
                 ),
+
+                // ✅ ADD: Out of Stock Badge
+                if (isOutOfStock)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                      child: Text(
+                        "Out of Stock",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
 
@@ -1269,6 +1831,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                     style: TextStyle(
                       fontSize: 12.5.sp,
                       fontWeight: FontWeight.w600,
+                      color: isOutOfStock ? Colors.grey : Colors.black,
                     ),
                   ),
                   SizedBox(height: 6.h),
@@ -1282,7 +1845,9 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                         style: TextStyle(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade700,
+                          color: isOutOfStock
+                              ? Colors.grey
+                              : Colors.green.shade700,
                         ),
                       ),
 
@@ -1291,14 +1856,18 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 8.w, vertical: 4.h),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
+                          color: isOutOfStock
+                              ? Colors.grey.shade200
+                              : Colors.green.shade50,
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(
                           "View",
                           style: TextStyle(
                             fontSize: 10.sp,
-                            color: Colors.green.shade700,
+                            color: isOutOfStock
+                                ? Colors.grey.shade500
+                                : Colors.green.shade700,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1612,6 +2181,12 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
         double.tryParse(variant?["special_price"]?.toString() ?? "0") ?? 0;
     final hasDiscount = originalPrice > discountedPrice && discountedPrice > 0;
 
+    // ✅ ADD: Check if variant is out of stock
+    final variantStock = variant != null
+        ? int.tryParse(variant["stock"]?.toString() ?? "0") ?? 0
+        : 0;
+    final isOutOfStock = variantStock <= 0;
+
     return Container(
       margin: EdgeInsets.all(6.r),
       decoration: BoxDecoration(
@@ -1628,7 +2203,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
+          // Image with Out of Stock Overlay
           GestureDetector(
             onTap: () {
               if (productId != null) {
@@ -1636,18 +2211,48 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
               }
             },
             child: SizedBox(
-              height: 110.h,
+              height: 100.h,
               width: double.infinity,
-              child: ClipRRect(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(12.r),
-                ),
-                child: imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.contain,
-                      )
-                    : Icon(Icons.image_not_supported),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(12.r),
+                    ),
+                    child: imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.contain,
+                          )
+                        : Icon(Icons.image_not_supported),
+                  ),
+
+                  // ✅ ADD: Out of Stock Overlay
+                  if (isOutOfStock)
+                    Container(
+                      color: Colors.black.withOpacity(0.4),
+                      child: Center(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Text(
+                            "Out of Stock",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -1666,6 +2271,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w500,
+                    color: isOutOfStock ? Colors.grey : Colors.black,
                   ),
                 ),
 
@@ -1686,34 +2292,40 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
                   "₹${discountedPrice.toInt()}",
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: Colors.green[700],
+                    color: isOutOfStock ? Colors.grey : Colors.green[700],
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
                 SizedBox(height: 5.h),
 
-                // Add to cart
-                SizedBox(
-                  height: 32.h,
-                  width: double.infinity,
-                  child: productId != null && variantId != null
-                      ? _buildCartButton(productId, variantId, isGrid: true)
-                      : Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                          child: Text(
-                            "Unavailable",
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
+                // Add to cart button
+                if (productId != null && variantId != null)
+                  _buildAddToCartButton(
+                    productId: productId,
+                    variantId: variantId,
+                    isOutOfStock: isOutOfStock,
+                    availableStock: variantStock,
+                    isGrid: true,
+                  )
+                else
+                  Container(
+                    height: 28.h,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Unavailable",
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: Colors.grey.shade600,
                         ),
-                ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -1732,7 +2344,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
           onPressed: () {},
         ),
         SizedBox(
-          height: 180.h,
+          height: 150.h,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: homeController.baseCategoriesList.length,
@@ -1759,7 +2371,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
               Get.to(() => ProductListScreen(categoryDetails: category));
             },
             child: Container(
-              width: 130.w,
+              width: 150.w,
               height: 120.h,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -1776,8 +2388,9 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12.r),
                 child: CachedNetworkImage(
+                  // width: 150.w,
                   imageUrl: imageUrl,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   placeholder: (context, url) => Container(
                     color: Colors.grey.shade300,
                   ),
@@ -1814,75 +2427,104 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       {bool isGrid = false}) {
     return Obx(() {
       final isInCart = cartController.isInCart(productId, variantId);
-      final quantity = cartController.getQuantity(productId, variantId);
+      final height = isGrid ? 28.h : 32.h;
+      final isRemoving = false.obs; // Local state for remove animation
 
-      if (isInCart && quantity > 0) {
-        return Container(
-          height: isGrid ? 32.h : 36.h,
-          //  width: isGrid ? double.infinity : 80.w,
-          decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(isGrid ? 8.r : 16.r),
-            border: Border.all(color: primaryColor),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              GestureDetector(
-                onTap: () async {
-                  if (quantity == 1) {
-                    // Find cart ID from cartList
-                    final cartItem = cartController.cartList.firstWhereOrNull(
-                      (item) =>
-                          item['product_id']?.toString() == productId &&
-                          item['pv_id']?.toString() == variantId,
-                    );
+      if (isInCart) {
+        // Show "Added" with remove option
+        return InkWell(
+          onTap: () async {
+            // Show removing animation
+            isRemoving.value = true;
 
-                    if (cartItem != null) {
-                      await cartController
-                          .removeFromCart(cartItem['cart_id'].toString());
-                    } else {
-                      // If not found in cartList, just update local state to 0
-                      cartController.updateQuantity(productId, variantId, 0);
-                    }
-                  } else {
-                    cartController.updateQuantity(
-                        productId, variantId, quantity - 1);
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Icon(
-                    Icons.remove,
-                    size: isGrid ? 16.sp : 18.sp,
-                    color: primaryColor,
+            // Find cart ID from cartList
+            final cartItem = cartController.cartList.firstWhereOrNull(
+              (item) =>
+                  item['product_id']?.toString() == productId &&
+                  item['pv_id']?.toString() == variantId,
+            );
+
+            if (cartItem != null) {
+              await cartController
+                  .removeFromCart(cartItem['cart_id'].toString());
+            } else {
+              cartController.updateQuantity(productId, variantId, 0);
+            }
+
+            isRemoving.value = false;
+          },
+          onLongPress: () {
+            // Optional: Show confirmation dialog on long press
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text("Remove Item"),
+                content: Text(
+                    "Are you sure you want to remove this item from cart?"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Get.back(),
+                    child: Text("Cancel"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      Get.back();
+                      // Find cart ID and remove
+                      final cartItem = cartController.cartList.firstWhereOrNull(
+                        (item) =>
+                            item['product_id']?.toString() == productId &&
+                            item['pv_id']?.toString() == variantId,
+                      );
+                      if (cartItem != null) {
+                        await cartController
+                            .removeFromCart(cartItem['cart_id'].toString());
+                      }
+                    },
+                    child: Text("Remove", style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
+            );
+          },
+          child: Obx(() => Container(
+                height: height,
+                decoration: BoxDecoration(
+                  color: isRemoving.value
+                      ? Colors.grey.withOpacity(0.1)
+                      : Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(isGrid ? 8.r : 12.r),
+                  border: Border.all(
+                    color: isRemoving.value ? Colors.grey : Colors.green,
                   ),
                 ),
-              ),
-              Text(
-                quantity.toString(),
-                style: TextStyle(
-                  fontSize: isGrid ? 14.sp : 15.sp,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  cartController.updateQuantity(
-                      productId, variantId, quantity + 1);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Icon(
-                    Icons.add,
-                    size: isGrid ? 16.sp : 18.sp,
-                    color: primaryColor,
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isRemoving.value)
+                        SizedBox(
+                          width: 12.sp,
+                          height: 12.sp,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.grey,
+                          ),
+                        )
+                      else
+                        Icon(Icons.check, size: 14.sp, color: Colors.green),
+                      SizedBox(width: 4.w),
+                      Text(
+                        isRemoving.value ? "Removing..." : "Added",
+                        style: TextStyle(
+                          color: isRemoving.value ? Colors.grey : Colors.green,
+                          fontSize: isGrid ? 10.sp : 11.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
+              )),
         );
       } else {
         return InkWell(
@@ -1890,27 +2532,33 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
             cartController.addToCartReactive(productId, 1, variantId, context);
           },
           child: Container(
-            height: isGrid ? 32.h : 36.h,
-            width: isGrid ? double.infinity : 36.w,
+            height: height,
+            width: isGrid ? double.infinity : null,
+            padding: EdgeInsets.symmetric(
+              horizontal: isGrid ? 12.w : 16.w,
+              vertical: 6.h,
+            ),
             decoration: BoxDecoration(
               color: primaryColor,
               borderRadius: BorderRadius.circular(isGrid ? 8.r : 12.r),
             ),
             child: Center(
-              child: isGrid
-                  ? Text(
-                      "Add to Cart",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    )
-                  : Icon(
-                      Icons.add,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!isGrid)
+                    Icon(Icons.add, color: Colors.white, size: 14.sp),
+                  SizedBox(width: isGrid ? 4.w : 6.w),
+                  Text(
+                    isGrid ? "Add to Cart" : "Add to Cart",
+                    style: TextStyle(
                       color: Colors.white,
-                      size: 18.sp,
+                      fontSize: isGrid ? 10.sp : 11.sp,
+                      fontWeight: FontWeight.w500,
                     ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -1921,45 +2569,68 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
   Widget _buildCartBottomBar() {
     return Positioned(
       bottom: 20.h,
-      left: 30.w,
-      right: 30.w,
+      right: 20.w,
       child: Obx(() {
-        // FIX: Use the most accurate count
         final count = cartController.cartItemCount.value;
-        final total = cartController.cartTotalPrice.value;
 
         if (count == 0) return const SizedBox.shrink();
 
         return GestureDetector(
           onTap: () async {
-            // Refresh cart before going to order summary
             await cartController.refreshCartWithRetry();
             Get.to(() => OrderSummary(orderList: cartController.cartList));
           },
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
+            width: 56.w,
+            height: 56.h,
             decoration: BoxDecoration(
-              color: primaryColor.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(14.r),
+              color: Colors.white,
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.orange.withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
                 ),
               ],
+              border: Border.all(
+                color: Colors.grey.shade100,
+                width: 1,
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Icon(Icons.shopping_cart, color: Colors.white, size: 18.sp),
-                SizedBox(width: 8.w),
-                Text(
-                  "$count items | ₹${total.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
+                Icon(
+                  Icons.shopping_bag_outlined,
+                  color: primaryColor,
+                  size: 24.sp,
+                ),
+
+                // Floating badge
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    width: 20.w,
+                    height: 20.h,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 1.5,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      count > 9 ? '9+' : '$count',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 9.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],

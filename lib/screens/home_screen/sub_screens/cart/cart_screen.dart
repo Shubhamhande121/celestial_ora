@@ -20,6 +20,7 @@ class Cart extends StatefulWidget {
 
 class _CartState extends State<Cart> {
   final CartController cartController = Get.find();
+
   @override
   void initState() {
     super.initState();
@@ -50,11 +51,23 @@ class _CartState extends State<Cart> {
                 itemBuilder: (context, index) {
                   var item = cartController.cartList[index];
 
+                  debugPrint("Cart Item: ${item.toString()}");
+                  final variantStock =
+                      item["stock"]?.toString(); // <-- CORRECT FIELD NAME
+                  final variantStockValue =
+                      int.tryParse(variantStock ?? "0") ?? 0;
+                  final isOutOfStock = variantStockValue <= 0;
+
+                  // Check if the current quantity exceeds available stock
+                  final currentQty = int.tryParse(item["cart_qty"] ?? "1") ?? 1;
+                  final exceedsStock =
+                      !isOutOfStock && currentQty > variantStockValue;
+
                   return ModernCartItem(
                     qty: int.tryParse(item["cart_qty"] ?? "1") ?? 1,
                     // In the onRemove callback in Cart screen
                     // In your Cart screen, update the onRemove callback:
-                    // In your Cart screen, update the onRemove callback:
+// In your Cart screen, update the onRemove callback:
                     onRemove: () {
                       showWarningDialog(
                         () {
@@ -90,7 +103,8 @@ class _CartState extends State<Cart> {
                     },
                     imageURL: item["image"] ?? "",
                     productName: item["name"] ?? "Product Name",
-                    description: item["description"] ?? "",
+                    description: item["variant_text"] ??
+                        "", // Using variant_text as description
                     cost: item["special_price"] ?? "0",
                     originalPrice: item["price"] ?? "",
                     onPressed: () {
@@ -102,109 +116,132 @@ class _CartState extends State<Cart> {
                         ),
                       );
                     },
-                    onPlusPressed: () {
-                      int currentQty =
-                          int.tryParse(item["cart_qty"] ?? "1") ?? 1;
+                    onPlusPressed: isOutOfStock
+                        ? null
+                        : () {
+                            int currentQty =
+                                int.tryParse(item["cart_qty"] ?? "1") ?? 1;
 
-                      // Update UI immediately
-                      cartController.cartList[index]["cart_qty"] =
-                          (currentQty + 1).toString();
-                      cartController.cartList.refresh();
-                      cartController.recalculateTotal();
+                            // Check if we're exceeding available stock
+                            if (currentQty >= variantStockValue) {
+                              Get.snackbar(
+                                "Out of Stock",
+                                "Only $variantStockValue items available",
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                              return;
+                            }
 
-                      // ✅ FIX: Also update localCartItems
-                      final productId = item["product_id"]?.toString();
-                      final variantId = item["pv_id"]?.toString();
-                      if (productId != null && variantId != null) {
-                        final key = '$productId-$variantId';
-                        cartController.localCartItems[key] = currentQty + 1;
-                        cartController.updateCartCountOptimistically();
-                      }
-
-                      // Update server
-                      cartController
-                          .updateCart(
-                        item["product_id"] ?? "",
-                        currentQty + 1,
-                        item["pv_id"] ?? "",
-                        item["cart_id"] ?? "",
-                      )
-                          .then((success) {
-                        if (!success) {
-                          // Rollback
-                          cartController.cartList[index]["cart_qty"] =
-                              currentQty.toString();
-                          cartController.cartList.refresh();
-                          cartController.recalculateTotal();
-
-                          if (productId != null && variantId != null) {
-                            final key = '$productId-$variantId';
-                            cartController.localCartItems[key] = currentQty;
-                            cartController.updateCartCountOptimistically();
-                          }
-                        }
-                      });
-                    },
-                    onMinusPressed: () {
-                      int currentQty =
-                          int.tryParse(item["cart_qty"] ?? "1") ?? 1;
-
-                      if (currentQty > 1) {
-                        // Update UI immediately
-                        cartController.cartList[index]["cart_qty"] =
-                            (currentQty - 1).toString();
-                        cartController.cartList.refresh();
-                        cartController.recalculateTotal();
-
-                        // ✅ FIX: Also update localCartItems
-                        final productId = item["product_id"]?.toString();
-                        final variantId = item["pv_id"]?.toString();
-                        if (productId != null && variantId != null) {
-                          final key = '$productId-$variantId';
-                          cartController.localCartItems[key] = currentQty - 1;
-                          cartController.updateCartCountOptimistically();
-                        }
-
-                        // Update server
-                        cartController
-                            .updateCart(
-                          item["product_id"] ?? "",
-                          currentQty - 1,
-                          item["pv_id"] ?? "",
-                          item["cart_id"] ?? "",
-                        )
-                            .then((success) {
-                          if (!success) {
-                            // Rollback
+                            // Update UI immediately
                             cartController.cartList[index]["cart_qty"] =
-                                currentQty.toString();
+                                (currentQty + 1).toString();
                             cartController.cartList.refresh();
                             cartController.recalculateTotal();
 
+                            // ✅ FIX: Also update localCartItems
+                            final productId = item["product_id"]?.toString();
+                            final variantId = item["pv_id"]?.toString();
                             if (productId != null && variantId != null) {
                               final key = '$productId-$variantId';
-                              cartController.localCartItems[key] = currentQty;
+                              cartController.localCartItems[key] =
+                                  currentQty + 1;
                               cartController.updateCartCountOptimistically();
                             }
-                          }
-                        });
-                      } else {
-                        // When quantity is 1 and we click minus, remove the item
-                        final productId = item["product_id"]?.toString();
-                        final variantId = item["pv_id"]?.toString();
 
-                        // ✅ FIX: Update local state first
-                        if (productId != null && variantId != null) {
-                          final key = '$productId-$variantId';
-                          cartController.localCartItems.remove(key);
-                          cartController.updateCartCountOptimistically();
-                          cartController.recalculateTotal();
-                        }
+                            // Update server
+                            cartController
+                                .updateCart(
+                              item["product_id"] ?? "",
+                              currentQty + 1,
+                              item["pv_id"] ?? "",
+                              item["cart_id"] ?? "",
+                            )
+                                .then((success) {
+                              if (!success) {
+                                // Rollback
+                                cartController.cartList[index]["cart_qty"] =
+                                    currentQty.toString();
+                                cartController.cartList.refresh();
+                                cartController.recalculateTotal();
 
-                        // Then remove from server
-                        cartController.removeFromCart(item["cart_id"] ?? "");
-                      }
-                    },
+                                if (productId != null && variantId != null) {
+                                  final key = '$productId-$variantId';
+                                  cartController.localCartItems[key] =
+                                      currentQty;
+                                  cartController
+                                      .updateCartCountOptimistically();
+                                }
+                              }
+                            });
+                          },
+                    onMinusPressed: isOutOfStock
+                        ? null
+                        : () {
+                            int currentQty =
+                                int.tryParse(item["cart_qty"] ?? "1") ?? 1;
+
+                            if (currentQty > 1) {
+                              // Update UI immediately
+                              cartController.cartList[index]["cart_qty"] =
+                                  (currentQty - 1).toString();
+                              cartController.cartList.refresh();
+                              cartController.recalculateTotal();
+
+                              // ✅ FIX: Also update localCartItems
+                              final productId = item["product_id"]?.toString();
+                              final variantId = item["pv_id"]?.toString();
+                              if (productId != null && variantId != null) {
+                                final key = '$productId-$variantId';
+                                cartController.localCartItems[key] =
+                                    currentQty - 1;
+                                cartController.updateCartCountOptimistically();
+                              }
+
+                              // Update server
+                              cartController
+                                  .updateCart(
+                                item["product_id"] ?? "",
+                                currentQty - 1,
+                                item["pv_id"] ?? "",
+                                item["cart_id"] ?? "",
+                              )
+                                  .then((success) {
+                                if (!success) {
+                                  // Rollback
+                                  cartController.cartList[index]["cart_qty"] =
+                                      currentQty.toString();
+                                  cartController.cartList.refresh();
+                                  cartController.recalculateTotal();
+
+                                  if (productId != null && variantId != null) {
+                                    final key = '$productId-$variantId';
+                                    cartController.localCartItems[key] =
+                                        currentQty;
+                                    cartController
+                                        .updateCartCountOptimistically();
+                                  }
+                                }
+                              });
+                            } else {
+                              // When quantity is 1 and we click minus, remove the item
+                              final productId = item["product_id"]?.toString();
+                              final variantId = item["pv_id"]?.toString();
+
+                              // ✅ FIX: Update local state first
+                              if (productId != null && variantId != null) {
+                                final key = '$productId-$variantId';
+                                cartController.localCartItems.remove(key);
+                                cartController.updateCartCountOptimistically();
+                                cartController.recalculateTotal();
+                              }
+
+                              // Then remove from server
+                              cartController
+                                  .removeFromCart(item["cart_id"] ?? "");
+                            }
+                          },
                   );
                 },
               );
@@ -251,26 +288,6 @@ class _CartState extends State<Cart> {
             ),
           ),
           SizedBox(height: 24.h),
-          // ElevatedButton(
-          //   onPressed: () {
-          //     Get.back();
-          //   },
-          //   style: ElevatedButton.styleFrom(
-          //     backgroundColor: primaryColor,
-          //     padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
-          //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(24.r),
-          //     ),
-          //   ),
-          //   child: Text(
-          //     "Start Shopping",
-          //     style: TextStyle(
-          //       fontSize: 16.sp,
-          //       fontWeight: FontWeight.w600,
-          //       color: Colors.white,
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -360,11 +377,20 @@ class ModernCartItem extends StatelessWidget {
     required this.onPlusPressed,
     required this.onMinusPressed,
     this.originalPrice = "",
+    this.isOutOfStock = false,
+    this.exceedsStock = false,
+    this.availableStock = 0,
   }) : super(key: key);
 
   final int qty;
   final String imageURL, productName, description, cost, originalPrice;
-  final VoidCallback onPressed, onPlusPressed, onMinusPressed, onRemove;
+  final VoidCallback onPressed;
+  final VoidCallback? onPlusPressed;
+  final VoidCallback? onMinusPressed;
+  final VoidCallback onRemove;
+  final bool isOutOfStock;
+  final bool exceedsStock;
+  final int availableStock;
 
   @override
   Widget build(BuildContext context) {
@@ -376,6 +402,17 @@ class ModernCartItem extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          // Out of Stock overlay
+          if (isOutOfStock || exceedsStock)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+            ),
+
           InkWell(
             onTap: onPressed,
             borderRadius: BorderRadius.circular(12.r),
@@ -384,25 +421,59 @@ class ModernCartItem extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Product Image
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10.r),
-                    child: Image.network(
-                      "$baseProductImageUrl${Uri.encodeComponent(imageURL)}",
-                      width: 80.w,
-                      height: 80.h,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        width: 80.w,
-                        height: 80.h,
-                        color: Colors.grey[100],
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          size: 30.sp,
-                          color: Colors.grey[400],
+                  // Product Image with out of stock overlay
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10.r),
+                        child: Image.network(
+                          "$baseProductImageUrl${Uri.encodeComponent(imageURL)}",
+                          width: 80.w,
+                          height: 80.h,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                            width: 80.w,
+                            height: 80.h,
+                            color: Colors.grey[100],
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 30.sp,
+                              color: Colors.grey[400],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      if (isOutOfStock || exceedsStock)
+                        Container(
+                          width: 80.w,
+                          height: 80.h,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Center(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8.w,
+                                vertical: 4.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(6.r),
+                              ),
+                              child: Text(
+                                isOutOfStock ? "Out of Stock" : "Exceeds Stock",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   SizedBox(width: 12.w),
 
@@ -412,14 +483,55 @@ class ModernCartItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Product Name
-                        Text(
-                          productName,
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                productName,
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: isOutOfStock || exceedsStock
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Stock status badge
+                            if (isOutOfStock || exceedsStock)
+                              Container(
+                                margin: EdgeInsets.only(left: 8.w),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 2.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isOutOfStock
+                                      ? Colors.red.shade50
+                                      : Colors.orange.shade50,
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  border: Border.all(
+                                    color: isOutOfStock
+                                        ? Colors.red.shade100
+                                        : Colors.orange.shade100,
+                                  ),
+                                ),
+                                child: Text(
+                                  isOutOfStock
+                                      ? "Out of Stock"
+                                      : "Stock: $availableStock",
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    color: isOutOfStock
+                                        ? Colors.red
+                                        : Colors.orange,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         SizedBox(height: 4.h),
 
@@ -428,12 +540,15 @@ class ModernCartItem extends StatelessWidget {
                           description,
                           style: TextStyle(
                             fontSize: 12.sp,
-                            color: Colors.grey[600],
+                            color: (isOutOfStock || exceedsStock)
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 8.h),
+
                         // Price + Actions Row
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,7 +563,9 @@ class ModernCartItem extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 14.sp,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.lightGreen,
+                                      color: isOutOfStock || exceedsStock
+                                          ? Colors.grey
+                                          : Colors.lightGreen,
                                     ),
                                   ),
                                   if (originalPrice.isNotEmpty &&
@@ -458,7 +575,9 @@ class ModernCartItem extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 12.sp,
                                         decoration: TextDecoration.lineThrough,
-                                        color: Colors.grey,
+                                        color: isOutOfStock || exceedsStock
+                                            ? Colors.grey[400]
+                                            : Colors.grey,
                                       ),
                                     ),
                                 ],
@@ -467,21 +586,28 @@ class ModernCartItem extends StatelessWidget {
 
                             // Quantity Controls
                             Card(
-                              elevation: 3,
-                              shadowColor: Colors.black26,
+                              elevation: isOutOfStock ? 0 : 3,
+                              shadowColor: isOutOfStock
+                                  ? Colors.transparent
+                                  : Colors.black26,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14.r),
                               ),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white,
-                                      Colors.grey.shade100
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
+                                  gradient: isOutOfStock || exceedsStock
+                                      ? null
+                                      : LinearGradient(
+                                          colors: [
+                                            Colors.white,
+                                            Colors.grey.shade100
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                  color: isOutOfStock || exceedsStock
+                                      ? Colors.grey.shade100
+                                      : null,
                                   borderRadius: BorderRadius.circular(14.r),
                                 ),
                                 padding: EdgeInsets.symmetric(
@@ -491,22 +617,28 @@ class ModernCartItem extends StatelessWidget {
                                   children: [
                                     // Minus
                                     InkWell(
-                                      onTap: onMinusPressed,
+                                      onTap: isOutOfStock || exceedsStock
+                                          ? null
+                                          : onMinusPressed,
                                       borderRadius: BorderRadius.circular(30.r),
                                       child: Container(
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: qty == 1
+                                          color: isOutOfStock || exceedsStock
                                               ? Colors.grey.shade200
-                                              : Colors.red.shade50,
+                                              : (qty == 1
+                                                  ? Colors.grey.shade200
+                                                  : Colors.red.shade50),
                                         ),
                                         padding: EdgeInsets.all(6.w),
                                         child: Icon(
                                           Icons.remove,
                                           size: 20.sp,
-                                          color: qty == 1
-                                              ? Colors.grey
-                                              : Colors.redAccent,
+                                          color: isOutOfStock || exceedsStock
+                                              ? Colors.grey.shade400
+                                              : (qty == 1
+                                                  ? Colors.grey
+                                                  : Colors.redAccent),
                                         ),
                                       ),
                                     ),
@@ -518,21 +650,33 @@ class ModernCartItem extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 14.sp,
                                           fontWeight: FontWeight.w700,
+                                          color: isOutOfStock || exceedsStock
+                                              ? Colors.grey
+                                              : Colors.black,
                                         ),
                                       ),
                                     ),
                                     // Plus
                                     InkWell(
-                                      onTap: onPlusPressed,
+                                      onTap: isOutOfStock || exceedsStock
+                                          ? null
+                                          : onPlusPressed,
                                       borderRadius: BorderRadius.circular(30.r),
                                       child: Container(
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.green.shade50,
+                                          color: isOutOfStock || exceedsStock
+                                              ? Colors.grey.shade200
+                                              : Colors.green.shade50,
                                         ),
                                         padding: EdgeInsets.all(6.w),
-                                        child: Icon(Icons.add,
-                                            size: 20.sp, color: Colors.green),
+                                        child: Icon(
+                                          Icons.add,
+                                          size: 20.sp,
+                                          color: isOutOfStock || exceedsStock
+                                              ? Colors.grey.shade400
+                                              : Colors.green,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -541,6 +685,38 @@ class ModernCartItem extends StatelessWidget {
                             ),
                           ],
                         ),
+                        // Warning message if quantity exceeds stock
+                        if (exceedsStock && availableStock > 0)
+                          Container(
+                            margin: EdgeInsets.only(top: 8.h),
+                            padding: EdgeInsets.all(8.w),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: Colors.orange.shade100,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber,
+                                  size: 14.sp,
+                                  color: Colors.orange,
+                                ),
+                                SizedBox(width: 6.w),
+                                Expanded(
+                                  child: Text(
+                                    "Only $availableStock available. Please adjust quantity.",
+                                    style: TextStyle(
+                                      fontSize: 11.sp,
+                                      color: Colors.orange.shade800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -559,13 +735,17 @@ class ModernCartItem extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.all(4.w),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: isOutOfStock || exceedsStock
+                      ? Colors.grey.shade200
+                      : Colors.grey.shade100,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.close_rounded,
                   size: 18.sp,
-                  color: Colors.black26,
+                  color: isOutOfStock || exceedsStock
+                      ? Colors.grey
+                      : Colors.black26,
                 ),
               ),
             ),

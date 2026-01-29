@@ -17,5 +17,4 @@ const MaterialColor primarySwatch = MaterialColor(0xFFE1B025, {
   700: Color(0xFFC0931B),
   800: Color(0xFFA68217),
   900: Color(0xFF806312),
-  
 });

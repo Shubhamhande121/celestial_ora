@@ -61,13 +61,13 @@ class _BestSellerWithCategoryScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ThemedAppBar(
+      appBar: const ThemedAppBar(
         title: 'Best Selling Products',
         showBack: true,
       ),
       body: Row(
         children: [
-          // Left Category List
+          /// 🔹 LEFT CATEGORY LIST
           Container(
             width: MediaQuery.of(context).size.width * 0.28,
             color: Colors.grey[100],
@@ -134,7 +134,7 @@ class _BestSellerWithCategoryScreenState
             ),
           ),
 
-          // Right Product List
+          /// 🔹 RIGHT PRODUCT LIST
           Expanded(
             child: Obx(() {
               // 🔄 Loading state

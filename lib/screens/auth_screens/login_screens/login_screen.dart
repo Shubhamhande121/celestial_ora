@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:organic_saga/constants/baseUrl.dart';
@@ -379,27 +380,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 18),
 
                         // 🎁 Referral
-                        const Text(
-                          "Referral Code (Optional)",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: referralController,
-                          decoration: InputDecoration(
-                            hintText: "Enter referral code",
-                            filled: true,
-                            fillColor: Colors.grey.shade100,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
+                        // const Text(
+                        //   "Referral Code (Optional)",
+                        //   style: TextStyle(
+                        //     fontWeight: FontWeight.w500,
+                        //   ),
+                        // ),
+                        //const SizedBox(height: 6),
+                        // TextField(
+                        //   controller: referralController,
+                        //   decoration: InputDecoration(
+                        //     hintText: "Enter referral code",
+                        //     filled: true,
+                        //     fillColor: Colors.grey.shade100,
+                        //     border: OutlineInputBorder(
+                        //       borderRadius: BorderRadius.circular(14),
+                        //       borderSide: BorderSide.none,
+                        //     ),
+                        //   ),
+                        // ),
 
-                        const SizedBox(height: 30),
+                        SizedBox(height: 15.h),
 
                         // 🚀 Submit Button
                         SizedBox(

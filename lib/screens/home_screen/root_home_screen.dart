@@ -44,11 +44,11 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
       "iconFilled": Icons.favorite,
       "label": "Favourite"
     },
-    {
-      "iconOutlined": Icons.account_circle_outlined,
-      "iconFilled": Icons.account_circle,
-      "label": "My Account"
-    },
+    // {
+    //   "iconOutlined": Icons.account_circle_outlined,
+    //   "iconFilled": Icons.account_circle,
+    //   "label": "My Account"
+    // },
   ];
 
   final List<Widget> listOfScreens = [
@@ -56,7 +56,7 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
     ExploreScreen(),
     Cart(),
     FavouriteScreen(),
-    Account(),
+    // Account(),
   ];
 
   @override
@@ -66,14 +66,13 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
   }
 
   Future<void> _preloadData() async {
-  final userId = await SharedPref.getUserId();
-  if (userId != null && userId.isNotEmpty) {
-    // ✅ Preload both wishlist & cart counts
-    await wishlistController.getWishlist(userId);
-    await cartController.getCart();  
+    final userId = await SharedPref.getUserId();
+    if (userId != null && userId.isNotEmpty) {
+      // ✅ Preload both wishlist & cart counts
+      await wishlistController.getWishlist(userId);
+      await cartController.getCart();
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -109,59 +108,66 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
                     ? _bottomNavbarData[index]['iconFilled']
                     : _bottomNavbarData[index]['iconOutlined'];
 
-                return GestureDetector(
-                  onTap: () => homeController.currentIndex.value = index,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Icon(
-                            icon,
-                            size: screenWidth / 13.25,
-                            color: isSelected ? primaryColor : Colors.black54,
-                          ),
-                          // ✅ Badge for Cart & Wishlist
-                          if ((index == 2 &&
-                                  cartController.isCartCount.value > 0) ||
-                              (index == 3 &&
-                                  wishlistController.wishlistCount.value > 0))
-                            Positioned(
-                              top: -6,
-                              right: -3,
-                              child: CircleAvatar(
-                                backgroundColor:
-                                    isSelected ? primaryColor : Colors.grey,
-                                radius: 10,
-                                child: Text(
-                                  index == 3
-                                      ? wishlistController.wishlistCount.value
-                                          .toString()
-                                      : cartController.isCartCount.value
-                                          .toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                return Obx(() {
+                  final isSelected = homeController.currentIndex.value == index;
+                  final IconData icon = isSelected
+                      ? _bottomNavbarData[index]['iconFilled']
+                      : _bottomNavbarData[index]['iconOutlined'];
+
+                  return InkWell(
+                    onTap: () => homeController.currentIndex.value = index,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Icon(
+                              icon,
+                              size: screenWidth / 13.25,
+                              color: isSelected ? primaryColor : Colors.black54,
+                            ),
+                            if ((index == 2 &&
+                                    cartController.isCartCount.value > 0) ||
+                                (index == 3 &&
+                                    wishlistController.wishlistCount.value > 0))
+                              Positioned(
+                                top: -6,
+                                right: -3,
+                                child: CircleAvatar(
+                                  radius: 10,
+                                  backgroundColor:
+                                      isSelected ? primaryColor : Colors.grey,
+                                  child: Text(
+                                    index == 3
+                                        ? wishlistController.wishlistCount.value
+                                            .toString()
+                                        : cartController.isCartCount.value
+                                            .toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _bottomNavbarData[index]['label'],
-                        style: TextStyle(
-                          color: isSelected ? primaryColor : Colors.black54,
-                          fontWeight: FontWeight.w600,
-                          fontSize: screenWidth / 34.5,
+                          ],
                         ),
-                      )
-                    ],
-                  ),
-                );
+                        const SizedBox(height: 4),
+                        Text(
+                          _bottomNavbarData[index]['label'],
+                          style: TextStyle(
+                            color: isSelected ? primaryColor : Colors.black54,
+                            fontWeight: FontWeight.w600,
+                            fontSize: screenWidth / 34.5,
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                });
               });
             }),
           ),
