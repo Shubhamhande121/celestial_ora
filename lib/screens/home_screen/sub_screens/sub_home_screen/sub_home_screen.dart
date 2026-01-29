@@ -9,6 +9,7 @@ import 'package:organic_saga/constants/baseUrl.dart';
 import 'package:organic_saga/constants/constants.dart';
 import 'package:organic_saga/screens/home_screen/home_controller.dart';
 import 'package:organic_saga/screens/home_screen/search_screens/search_screen.dart';
+import 'package:organic_saga/screens/home_screen/sub_screens/account/account.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/notifications/notification_controller.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/notifications/notifications.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
@@ -128,16 +129,56 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       resizeToAvoidBottomInset: false, // ✅ FIX: Prevents unnecessary resizing
       appBar: ThemedAppBar(
         title: "Celestial Ora",
-        actions: [_buildNotificationIcon()],
+        cartCount: cartController.cartList.length,
+        onCartTap: () {
+          // Get.to(() => CartScreen());
+        },
+        onSearchTap: () {
+          // open search screen
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.9,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20.r),
+                    topRight: Radius.circular(20.r),
+                  ),
+                ),
+                child: SearchBottomSheet(),
+              );
+            },
+          );
+        },
       ),
+
+      //  ThemedAppBar(
+      //   title: "Celestial Ora",
+      //   actions: [
+      //     IconButton(
+      //       icon: Icon(
+      //         Icons.account_circle_outlined,
+      //         color: Colors.white,
+      //       ),
+      //       onPressed: () {
+      //         Get.to(() => Account());
+      //       },
+      //     ),
+      //     _buildNotificationIcon()
+      //   ],
+      // ),
       body: Stack(
         children: [
           Container(color: Colors.white),
           SafeArea(
             child: Column(
               children: [
-                SizedBox(height: 15.h),
-                _buildSearchBar(),
+                // SizedBox(height: 15.h),
+                // _buildSearchBar(),
                 SizedBox(height: 10.h),
                 Expanded(
                   child: _buildMainContent(),
@@ -266,16 +307,16 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
         physics: const BouncingScrollPhysics(),
         slivers: [
           // ✅ FIX: Marquee Banner
-          SliverToBoxAdapter(child: _buildMarqueeBanner()),
+          // SliverToBoxAdapter(child: _buildMarqueeBanner()),
 
           // ✅ FIX: Shop by Category
-          SliverToBoxAdapter(child: _buildCategoriesSection()),
+          // SliverToBoxAdapter(child: _buildCategoriesSection()),
 
           // ✅ FIX: Banner Carousel
           SliverToBoxAdapter(child: _buildBannerCarousel()),
 
           // ✅ FIX: View More Button for Banner
-          SliverToBoxAdapter(child: _buildViewMoreButton()),
+          // SliverToBoxAdapter(child: _buildViewMoreButton()),
 
           // ✅ FIX: Trending Products (Horizontal)
           SliverToBoxAdapter(child: _buildTrendingProductsSection()),
@@ -294,7 +335,7 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
           _buildAllProductsGrid(),
 
           // ✅ FIX: Shop by Category (Rectangle)
-          SliverToBoxAdapter(child: _buildRectangleCategoriesSection()),
+          // SliverToBoxAdapter(child: _buildRectangleCategoriesSection()),
 
           // Add some bottom padding
           SliverToBoxAdapter(child: SizedBox(height: 80.h)),
@@ -588,110 +629,287 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
   }
 
   Widget _buildBannerCarousel() {
+    final RxInt currentIndex = 0.obs;
+
     return Obx(() {
       final banners = homeController.bestSellerList;
 
+      if (banners.isEmpty) {
+        return Container(
+          width: MediaQuery.of(context).size.width,
+          height: 160.h,
+          margin: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(18.r),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image_outlined,
+                    size: 42, color: Colors.grey.shade400),
+                SizedBox(height: 8.h),
+                Text(
+                  "No banners available",
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      final PageController pageController =
+          PageController(viewportFraction: 0.92);
+
+      // 🔥 Auto Slide
+      Future.delayed(const Duration(seconds: 3), () {
+        if (pageController.hasClients && banners.isNotEmpty) {
+          int nextPage = (currentIndex.value + 1) % banners.length;
+          pageController.animateToPage(
+            nextPage,
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+
       return Container(
         width: MediaQuery.of(context).size.width,
-        height: 200.h,
+        height: 175.h,
         margin: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(18.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
+              color: Colors.black.withOpacity(0.10),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: banners.isEmpty
-            // 🌿 Elegant Empty State
-            ? Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.image_outlined,
-                          size: 40, color: Colors.grey.shade400),
-                      SizedBox(height: 8.h),
-                      Text(
-                        "No banners available",
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18.r),
+          child: Stack(
+            children: [
+              // 🌸 Banner Slider
+              PageView.builder(
+                controller: pageController,
+                itemCount: banners.length,
+                onPageChanged: (index) => currentIndex.value = index,
+                itemBuilder: (context, index) {
+                  final banner = banners[index];
+                  final imageUrl = banner['image'] != null
+                      ? baseSliderImageUrl + banner['image']
+                      : null;
 
-            // 🌸 Banner Carousel
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(16.r),
-                child: PageView.builder(
-                  controller: PageController(viewportFraction: 0.95),
-                  itemCount: banners.length,
-                  itemBuilder: (context, index) {
-                    final banner = banners[index];
-                    final imageUrl = banner['image'] != null
-                        ? baseSliderImageUrl + banner['image']
-                        : null;
-
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4.w),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14.r),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            imageUrl != null
-                                ? CachedNetworkImage(
-                                    imageUrl: imageUrl,
-                                    fit: BoxFit.cover,
-                                    height: double.infinity,
-                                    placeholder: (context, url) => Container(
-                                      color: Colors.grey.shade200,
+                  return Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 5.w, vertical: 6.h),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.r),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // 🔥 Better look with cover
+                          imageUrl != null
+                              ? CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                    color: Colors.grey.shade100,
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image,
+                                          color: Colors.grey),
                                     ),
-                                    errorWidget: (context, url, error) =>
-                                        Container(
-                                      color: Colors.grey.shade100,
-                                      child: const Center(
-                                        child: Icon(Icons.broken_image,
-                                            color: Colors.grey),
-                                      ),
-                                    ),
-                                  )
-                                : Container(color: Colors.grey.shade100),
+                                  ),
+                                )
+                              : Container(color: Colors.grey.shade100),
 
-                            // ✨ Soft gradient overlay (luxury feel)
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(0.15),
-                                    Colors.transparent,
-                                  ],
-                                ),
+                          // ✨ Luxury gradient overlay
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.35),
+                                  Colors.transparent,
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+
+                          // 🌟 Optional: Small “Shop Now” Tag
+                          // Positioned(
+                          //   bottom: 12.h,
+                          //   left: 12.w,
+                          //   child: Container(
+                          //     padding: EdgeInsets.symmetric(
+                          //         horizontal: 12.w, vertical: 6.h),
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.white.withOpacity(0.88),
+                          //       borderRadius: BorderRadius.circular(12.r),
+                          //     ),
+                          //     child: Text(
+                          //       "Shop Now",
+                          //       style: TextStyle(
+                          //         fontSize: 12.sp,
+                          //         fontWeight: FontWeight.w600,
+                          //         color: Colors.black87,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // 🔘 Dots Indicator
+              Positioned(
+                bottom: 10.h,
+                right: 14.w,
+                child: Row(
+                  children: List.generate(banners.length, (index) {
+                    final isActive = currentIndex.value == index;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: EdgeInsets.symmetric(horizontal: 3.w),
+                      height: 6.h,
+                      width: isActive ? 18.w : 6.w,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20.r),
                       ),
                     );
-                  },
+                  }),
                 ),
               ),
+            ],
+          ),
+        ),
       );
     });
   }
+
+  // Widget _buildBannerCarousel() {
+  //   return Obx(() {
+  //     final banners = homeController.bestSellerList;
+
+  //     return Container(
+  //       width: MediaQuery.of(context).size.width,
+  //       height: 150.h,
+  //       margin: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+  //       decoration: BoxDecoration(
+  //         borderRadius: BorderRadius.circular(16.r),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: Colors.black.withOpacity(0.08),
+  //             blurRadius: 14,
+  //             offset: const Offset(0, 6),
+  //           ),
+  //         ],
+  //       ),
+  //       child: banners.isEmpty
+  //           // 🌿 Elegant Empty State
+  //           ? Container(
+  //               decoration: BoxDecoration(
+  //                 color: Colors.grey.shade100,
+  //                 borderRadius: BorderRadius.circular(16.r),
+  //               ),
+  //               child: Center(
+  //                 child: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     Icon(Icons.image_outlined,
+  //                         size: 40, color: Colors.grey.shade400),
+  //                     SizedBox(height: 8.h),
+  //                     Text(
+  //                       "No banners available",
+  //                       style: TextStyle(
+  //                         color: Colors.grey.shade600,
+  //                         fontSize: 14.sp,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             )
+
+  //           // 🌸 Banner Carousel
+  //           : ClipRRect(
+  //               borderRadius: BorderRadius.circular(16.r),
+  //               child: PageView.builder(
+  //                 controller: PageController(viewportFraction: 0.95),
+  //                 itemCount: banners.length,
+  //                 itemBuilder: (context, index) {
+  //                   final banner = banners[index];
+  //                   final imageUrl = banner['image'] != null
+  //                       ? baseSliderImageUrl + banner['image']
+  //                       : null;
+
+  //                   return Padding(
+  //                     padding: EdgeInsets.symmetric(horizontal: 4.w),
+  //                     child: ClipRRect(
+  //                       borderRadius: BorderRadius.circular(14.r),
+  //                       child: Stack(
+  //                         fit: StackFit.expand,
+  //                         children: [
+  //                           imageUrl != null
+  //                               ? CachedNetworkImage(
+  //                                   imageUrl: imageUrl,
+  //                                   fit: BoxFit.contain,
+  //                                   height: double.infinity,
+  //                                   placeholder: (context, url) => Container(
+  //                                     color: Colors.grey.shade200,
+  //                                   ),
+  //                                   errorWidget: (context, url, error) =>
+  //                                       Container(
+  //                                     color: Colors.grey.shade100,
+  //                                     child: const Center(
+  //                                       child: Icon(Icons.broken_image,
+  //                                           color: Colors.grey),
+  //                                     ),
+  //                                   ),
+  //                                 )
+  //                               : Container(color: Colors.grey.shade100),
+
+  //                           // ✨ Soft gradient overlay (luxury feel)
+  //                           Container(
+  //                             decoration: BoxDecoration(
+  //                               gradient: LinearGradient(
+  //                                 begin: Alignment.bottomCenter,
+  //                                 end: Alignment.topCenter,
+  //                                 colors: [
+  //                                   Colors.black.withOpacity(0.15),
+  //                                   Colors.transparent,
+  //                                 ],
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   );
+  //                 },
+  //               ),
+  //             ),
+  //     );
+  //   });
+  // }
 
   // Widget _buildBannerCarousel() {
   //   return Obx(() {
@@ -1761,7 +1979,6 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
   // }
 
   Widget _buildAllProductsGrid() {
-     
     return Obx(() {
       final products = homeController.trendingList;
 

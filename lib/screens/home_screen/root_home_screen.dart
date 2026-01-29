@@ -44,11 +44,11 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
       "iconFilled": Icons.favorite,
       "label": "Favourite"
     },
-    {
-      "iconOutlined": Icons.account_circle_outlined,
-      "iconFilled": Icons.account_circle,
-      "label": "My Account"
-    },
+    // {
+    //   "iconOutlined": Icons.account_circle_outlined,
+    //   "iconFilled": Icons.account_circle,
+    //   "label": "My Account"
+    // },
   ];
 
   final List<Widget> listOfScreens = [
@@ -56,7 +56,7 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
     ExploreScreen(),
     Cart(),
     FavouriteScreen(),
-    Account(),
+    // Account(),
   ];
 
   @override
