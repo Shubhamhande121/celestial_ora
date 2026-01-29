@@ -257,7 +257,6 @@ class _BestSellerWithCategoryScreenState
                                       ],
                                     ),
                                     const SizedBox(height: 10),
-
                                     /// 🔥 Cart Controls
                                     Obx(() {
                                       final cartItem = cartController.cartList
