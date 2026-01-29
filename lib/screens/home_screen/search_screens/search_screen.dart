@@ -24,6 +24,7 @@ class _SearchBottomSheetState extends State<SearchBottomSheet> {
   var isLoading = false.obs;
 
   var listOfSearch = [].obs;
+  final TextEditingController searchController = TextEditingController();
 
   getSearch(search) async {
     listOfSearch.value = [];
@@ -56,6 +57,7 @@ class _SearchBottomSheetState extends State<SearchBottomSheet> {
         child: Column(
           children: [
             // small handle bar for bottom sheet
+
             Container(
               width: 40,
               height: 4,
@@ -66,16 +68,43 @@ class _SearchBottomSheetState extends State<SearchBottomSheet> {
               ),
             ),
             // search bar
-            TextField(
-              onChanged: (value) => getSearch(value),
-              decoration: InputDecoration(
-                hintText: "Search for products",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: TextField(
+                controller: searchController,
+                onChanged: (value) => getSearch(value),
+                decoration: InputDecoration(
+                  hintText: "Search products, brands…",
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  border: InputBorder.none,
+                  icon: const Icon(Icons.search, color: Colors.black54),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () {
+                      searchController.clear(); // ✅ clears text
+                      listOfSearch.clear(); // clears results
+                      isLoading.value = false;
+                    },
+                  ),
                 ),
               ),
             ),
+
+            // TextField(
+            //   onChanged: (value) => getSearch(value),
+            //   decoration: InputDecoration(
+            //     hintText: "Search for products",
+            //     prefixIcon: const Icon(Icons.search),
+            //     border: OutlineInputBorder(
+            //       borderRadius: BorderRadius.circular(18),
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 10),
             // search results
             Expanded(
@@ -96,8 +125,20 @@ class _SearchBottomSheetState extends State<SearchBottomSheet> {
                 }
 
                 if (listOfSearch.isEmpty && !isLoading.value) {
-                  return Center(
-                    child: Text("No products found"),
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off,
+                          size: 60, color: Colors.grey.shade400),
+                      const SizedBox(height: 12),
+                      Text(
+                        "No products found",
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   );
                 } else {
                   return GridView.builder(

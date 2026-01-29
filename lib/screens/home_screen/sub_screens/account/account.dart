@@ -13,6 +13,7 @@ import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/privacy_policy.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/promocode/promocode.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/terms_condition.dart';
+import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_screen.dart';
 import 'package:organic_saga/screens/refer_earn_screen/refer_earn_screen.dart';
 import 'package:organic_saga/shared_pref/shared_pref.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/account/sub_screens/notifications/notification_controller.dart';
@@ -42,6 +43,9 @@ class _AccountState extends State<Account> {
       appBar: ThemedAppBar(
         title: "Profile",
         showBack: false,
+        onCartTap: () {
+          Get.to(() => Cart());
+        },
         onBack: handleBackPress,
       ),
       bottomNavigationBar: Container(
@@ -82,114 +86,235 @@ class _AccountState extends State<Account> {
               () => GestureDetector(
                 onTap: () => Get.to(() => const MyDetail()),
                 child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 20.w),
+                  margin: EdgeInsets.symmetric(horizontal: 16.w),
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: [
+                      /// Avatar
+                      CircleAvatar(
+                        radius: 28.r,
+                        backgroundColor: primaryColor.withOpacity(0.15),
+                        child: Icon(Icons.person,
+                            color: primaryColor, size: 30.sp),
+                      ),
+                      14.w.horizontalSpace,
+
+                      /// Name + Mobile
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            10.h.verticalSpace,
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    homeController.userModel.value.username ??
-                                        "Fresh Basket",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 16.sp,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                6.w.horizontalSpace,
-                                Icon(
-                                  Icons.edit,
-                                  size: 18.sp,
-                                  color: primaryColor,
-                                ),
-                              ],
+                            Text(
+                              homeController.userModel.value.username ??
+                                  "Fresh Basket",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
+                            4.h.verticalSpace,
                             Text(
                               "+91 ${homeController.userModel.value.mobile ?? "phone number"}",
                               style: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: 13.sp,
                                 color: Colors.black54,
                               ),
                             ),
                           ],
                         ),
                       ),
+
+                      Icon(Icons.edit, color: primaryColor, size: 20.sp),
                     ],
                   ),
                 ),
               ),
             ),
+
+            // Obx(
+            //   () => GestureDetector(
+            //     onTap: () => Get.to(() => const MyDetail()),
+            //     child: Container(
+            //       margin: EdgeInsets.symmetric(horizontal: 20.w),
+            //       child: Row(
+            //         children: [
+            //           Expanded(
+            //             child: Column(
+            //               crossAxisAlignment: CrossAxisAlignment.start,
+            //               children: [
+            //                 10.h.verticalSpace,
+            //                 Row(
+            //                   children: [
+            //                     Flexible(
+            //                       child: Text(
+            //                         homeController.userModel.value.username ??
+            //                             "Fresh Basket",
+            //                         overflow: TextOverflow.ellipsis,
+            //                         style: TextStyle(
+            //                           fontSize: 16.sp,
+            //                           color: Colors.black,
+            //                         ),
+            //                       ),
+            //                     ),
+            //                     6.w.horizontalSpace,
+            //                     Icon(
+            //                       Icons.edit,
+            //                       size: 18.sp,
+            //                       color: primaryColor,
+            //                     ),
+            //                   ],
+            //                 ),
+            //                 Text(
+            //                   "+91 ${homeController.userModel.value.mobile ?? "phone number"}",
+            //                   style: TextStyle(
+            //                     fontSize: 14.sp,
+            //                     color: Colors.black54,
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
             20.h.verticalSpace,
+
             Padding(
-              padding: EdgeInsets.only(left: 20.w),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.r),
-                  color: primaryColor,
-                ),
-                child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-                  child: Text(
-                    "Wallet Bal: ₹ ${homeController.userModel.value.walletBalance ?? "0.00"}",
-                    style: TextStyle(fontSize: 14.sp, color: Colors.white),
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryColor,
+                      primaryColor.withOpacity(0.85),
+                    ],
                   ),
+                  borderRadius: BorderRadius.circular(30.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.account_balance_wallet,
+                        color: Colors.white, size: 16.sp),
+                    6.w.horizontalSpace,
+                    Text(
+                      "Wallet ₹ ${homeController.userModel.value.walletBalance ?? "0.00"}",
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
+
+            // Padding(
+            //   padding: EdgeInsets.only(left: 20.w),
+            //   child: Container(
+            //     decoration: BoxDecoration(
+            //       borderRadius: BorderRadius.circular(8.r),
+            //       color: primaryColor,
+            //     ),
+            //     child: Padding(
+            //       padding:
+            //           EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+            //       child: Text(
+            //         "Wallet Bal: ₹ ${homeController.userModel.value.walletBalance ?? "0.00"}",
+            //         style: TextStyle(fontSize: 14.sp, color: Colors.white),
+            //       ),
+            //     ),
+            //   ),
+            // ),
             20.h.verticalSpace,
             CustomDivider(screenWidth: 1.sw),
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 10.h, 0, 4.h),
+              child: Text(
+                "ACCOUNT",
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.black45,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: Column(
-                  children: [
-                    _buildItem("My Orders", Icons.shopping_bag_outlined,
-                        const Orders()),
-                    _buildItem("My Details", Icons.list_alt, MyDetail()),
-                    _buildItem("My Address", Icons.location_on_outlined,
-                        const AddressScreen()),
-                    _buildItem("Promo Code", Icons.local_activity_outlined,
-                        const PromoCode()),
-                    _buildItem("Refer & Earn", Icons.savings_outlined,
-                        ReferEarnScreen()),
-                    // Obx(
-                    //   () => _buildItem(
-                    //     "Notifications",
-                    //     Icons.notifications_none_outlined,
-                    //     NotificationScreen(), // Just navigate, don’t clear here
-                    //     trailing:
-                    //         notificationController.notificationCount.value > 0
-                    //             ? Container(
-                    //                 width: 10.w,
-                    //                 height: 10.w,
-                    //                 decoration: const BoxDecoration(
-                    //                   color: Colors.red,
-                    //                   shape: BoxShape.circle,
-                    //                 ),
-                    //               )
-                    //             : null,
-                    //     onTap: () {
-                    //       // Only navigate to the screen
-                    //       Get.to(() => NotificationScreen());
-                    //     },
-                    //   ),
-                    // ),
-                    _buildItem("Contact Us", Icons.contact_support_outlined,
-                        const ContactUs()),
-                    _buildItem("Privacy Policy", Icons.security_outlined,
-                        const PrivacyPolicy()),
-                    _buildItem("Terms & Conditions", Icons.newspaper_outlined,
-                        const TermsCondition()),
-                    _buildItem("About", Icons.info_outline, const AboutUs()),
-                  ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _buildItem("My Orders", Icons.shopping_bag_outlined,
+                          const Orders()),
+                      _buildItem("My Details", Icons.list_alt, MyDetail()),
+                      _buildItem("My Address", Icons.location_on_outlined,
+                          const AddressScreen()),
+                      _buildItem("Promo Code", Icons.local_activity_outlined,
+                          const PromoCode()),
+                      _buildItem("Refer & Earn", Icons.savings_outlined,
+                          ReferEarnScreen()),
+                      // Obx(
+                      //   () => _buildItem(
+                      //     "Notifications",
+                      //     Icons.notifications_none_outlined,
+                      //     NotificationScreen(), // Just navigate, don’t clear here
+                      //     trailing:
+                      //         notificationController.notificationCount.value > 0
+                      //             ? Container(
+                      //                 width: 10.w,
+                      //                 height: 10.w,
+                      //                 decoration: const BoxDecoration(
+                      //                   color: Colors.red,
+                      //                   shape: BoxShape.circle,
+                      //                 ),
+                      //               )
+                      //             : null,
+                      //     onTap: () {
+                      //       // Only navigate to the screen
+                      //       Get.to(() => NotificationScreen());
+                      //     },
+                      //   ),
+                      // ),
+                      _buildItem("Contact Us", Icons.contact_support_outlined,
+                          const ContactUs()),
+                      _buildItem("Privacy Policy", Icons.security_outlined,
+                          const PrivacyPolicy()),
+                      _buildItem("Terms & Conditions", Icons.newspaper_outlined,
+                          const TermsCondition()),
+                      _buildItem("About", Icons.info_outline, const AboutUs()),
+                    ],
+                  ),
                 ),
               ),
             )
@@ -230,36 +355,113 @@ class IndividualProfileItemBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onPressed,
-      child: Column(
-        children: [
-          16.h.verticalSpace,
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Row(
+      borderRadius: BorderRadius.circular(14.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          children: [
+            14.h.verticalSpace,
+            Row(
               children: [
-                Icon(iconData, color: Colors.black45, size: 22.sp),
-                16.w.horizontalSpace,
+                // Icon container
+                Container(
+                  width: 36.w,
+                  height: 36.w,
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Icon(
+                    iconData,
+                    color: primaryColor,
+                    size: 20.sp,
+                  ),
+                ),
+
+                14.w.horizontalSpace,
+
                 Expanded(
                   child: Text(
                     label,
-                    style: TextStyle(fontSize: 14.sp),
+                    style: TextStyle(
+                      fontSize: 14.5.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
+
                 if (trailing != null) trailing!,
-                Icon(Icons.chevron_right_rounded,
-                    color: Colors.black45, size: 22.sp),
+
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22.sp,
+                  color: Colors.black38,
+                ),
               ],
             ),
-          ),
-          16.h.verticalSpace,
-          Divider(
-            thickness: 1,
-            height: 1,
-            indent: 30.w,
-            color: const Color(0xFFE2E2E2),
-          ),
-        ],
+            14.h.verticalSpace,
+            Divider(
+              height: 1,
+              thickness: 1,
+              indent: 50.w,
+              color: const Color(0xFFEAEAEA),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+// class IndividualProfileItemBuilder extends StatelessWidget {
+//   final String label;
+//   final IconData? iconData;
+//   final VoidCallback onPressed;
+//   final Widget? trailing;
+
+//   const IndividualProfileItemBuilder({
+//     Key? key,
+//     required this.label,
+//     required this.onPressed,
+//     this.iconData,
+//     this.trailing,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return InkWell(
+//       onTap: onPressed,
+//       child: Column(
+//         children: [
+//           16.h.verticalSpace,
+//           Padding(
+//             padding: EdgeInsets.symmetric(horizontal: 20.w),
+//             child: Row(
+//               children: [
+//                 Icon(iconData, color: Colors.black45, size: 22.sp),
+//                 16.w.horizontalSpace,
+//                 Expanded(
+//                   child: Text(
+//                     label,
+//                     style: TextStyle(fontSize: 14.sp),
+//                   ),
+//                 ),
+//                 if (trailing != null) trailing!,
+//                 Icon(Icons.chevron_right_rounded,
+//                     color: Colors.black45, size: 22.sp),
+//               ],
+//             ),
+//           ),
+//           16.h.verticalSpace,
+//           Divider(
+//             thickness: 1,
+//             height: 1,
+//             indent: 30.w,
+//             color: const Color(0xFFE2E2E2),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

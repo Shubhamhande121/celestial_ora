@@ -55,8 +55,9 @@
 // }
 
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
+
+import '../screens/home_screen/sub_screens/cart/cart_controller.dart';
 
 class ThemedAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -65,22 +66,35 @@ class ThemedAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final VoidCallback? onSearchTap;
   final VoidCallback? onCartTap;
+  // final VoidCallback? onAccountTap;
 
-  final int cartCount;
-  final List<Widget>? actions; // Keep this as List<Widget>
+  final bool actions; // Keep this as List<Widget>
 
-  const ThemedAppBar(
+  ThemedAppBar(
       {super.key,
       this.title,
       this.showBack = false,
       this.onBack,
       this.onSearchTap,
       this.onCartTap,
-      this.cartCount = 0,
-      this.actions});
+      // this.onAccountTap,
+
+      this.actions = false});
+
+  // @override
+  // Size get preferredSize => const Size.fromHeight(95);
+
+  final cartController = Get.put(CartController());
 
   @override
-  Size get preferredSize => const Size.fromHeight(95);
+  Size get preferredSize {
+    // Total AppBar height
+    // default AppBar height = kToolbarHeight = 56
+    final double baseHeight = kToolbarHeight;
+    return Size.fromHeight(actions ? baseHeight + 40 : baseHeight);
+    // 56 + 40 = 96 if actions true
+    // 56 if actions false
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +139,19 @@ class ThemedAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        // // 👤 Account
+        // GestureDetector(
+        //   onTap: onAccountTap, // navigate to profile / login
+        //   child: Padding(
+        //     padding: const EdgeInsets.only(right: 8, top: 10),
+        //     child: const Icon(
+        //       Icons.person_outline_rounded,
+        //       color: Colors.white,
+        //       size: 28,
+        //     ),
+        //   ),
+        // ),
+
         GestureDetector(
           onTap: onCartTap,
           child: Padding(
@@ -137,8 +164,11 @@ class ThemedAppBar extends StatelessWidget implements PreferredSizeWidget {
                   color: Colors.white,
                   size: 26,
                 ),
-                if (cartCount > 0)
-                  Positioned(
+                Obx(() {
+                  final count = cartController.cartItemCount;
+                  if (count == 0) return const SizedBox.shrink();
+
+                  return Positioned(
                     right: -6,
                     top: -6,
                     child: Container(
@@ -149,7 +179,7 @@ class ThemedAppBar extends StatelessWidget implements PreferredSizeWidget {
                         border: Border.all(color: Colors.white, width: 1.5),
                       ),
                       child: Text(
-                        cartCount > 9 ? "9+" : cartCount.toString(),
+                        count > 9 ? "9+" : count.toString(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -157,68 +187,72 @@ class ThemedAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ),
                     ),
-                  ),
+                  );
+                }),
               ],
             ),
           ),
         ),
       ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(55),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-          child: GestureDetector(
-            onTap: onSearchTap,
-            child: Container(
-              height: 42,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.95),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.search, color: Colors.black54, size: 22),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      "Search products, brands...",
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      bottom: actions
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(55),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                child: GestureDetector(
+                  onTap: onSearchTap,
+                  child: Container(
+                    height: 42,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE1B025),
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: const Text(
-                      "Search",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.search,
+                            color: Colors.black54, size: 22),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            "Tap to search products & brands",
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        // Container(
+                        //   padding:
+                        //       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        //   decoration: BoxDecoration(
+                        //     color: const Color(0xFFE1B025),
+                        //     borderRadius: BorderRadius.circular(10),
+                        //   ),
+                        //   child: const Text(
+                        //     "Search",
+                        //     style: TextStyle(
+                        //       color: Colors.white,
+                        //       fontSize: 11,
+                        //       fontWeight: FontWeight.w700,
+                        //     ),
+                        //   ),
+                        // ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
-      ),
+            )
+          : null,
     );
   }
 }

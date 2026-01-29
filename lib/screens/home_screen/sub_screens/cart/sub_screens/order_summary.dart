@@ -408,7 +408,7 @@ class _OrderSummaryState extends State<OrderSummary> {
     });
 
     return Scaffold(
-      appBar: const ThemedAppBar(
+      appBar:  ThemedAppBar(
         title: "Order Summary",
         showBack: true,
       ),

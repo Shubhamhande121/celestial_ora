@@ -55,7 +55,7 @@ class _ContactUsState extends State<ContactUs> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: const ThemedAppBar(
+      appBar:  ThemedAppBar(
         title: 'Contact Us',
         showBack: true,
       ),

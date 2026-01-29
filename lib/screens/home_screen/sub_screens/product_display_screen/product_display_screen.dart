@@ -231,30 +231,36 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
-        onPressed: () => Get.back(),
-      ),
-      title: Text(
-        "Product Details",
-        style: TextStyle(
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-      ),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: Icon(Icons.search, color: Colors.black, size: 24.sp),
-          onPressed: _openSearch,
-        ),
-        SizedBox(width: 8.w),
-      ],
-    );
+    return ThemedAppBar(
+        title: "Product Details",
+        showBack: true,
+        onSearchTap: () {},
+        onCartTap: () => Get.to(Cart()));
+
+    // AppBar(
+    //   backgroundColor: Colors.white,
+    //   elevation: 0,
+    //   leading: IconButton(
+    //     icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
+    //     onPressed: () => Get.back(),
+    //   ),
+    //   title: Text(
+    //     "Product Details",
+    //     style: TextStyle(
+    //       fontSize: 18.sp,
+    //       fontWeight: FontWeight.w600,
+    //       color: Colors.black,
+    //     ),
+    //   ),
+    //   centerTitle: true,
+    //   actions: [
+    //     IconButton(
+    //       icon: Icon(Icons.search, color: Colors.black, size: 24.sp),
+    //       onPressed: _openSearch,
+    //     ),
+    //     SizedBox(width: 8.w),
+    //   ],
+    // );
   }
 
   void _openSearch() {
@@ -1391,7 +1397,7 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: secondaryColor,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 18.h),
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.r),
                     ),
@@ -1427,7 +1433,7 @@ class _ProductDisplayScreenState extends State<ProductDisplayScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 18.h),
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.r),
                     ),

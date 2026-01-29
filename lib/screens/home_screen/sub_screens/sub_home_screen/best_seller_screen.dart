@@ -61,7 +61,7 @@ class _BestSellerWithCategoryScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const ThemedAppBar(
+      appBar: ThemedAppBar(
         title: 'Best Selling Products',
         showBack: true,
       ),
@@ -257,6 +257,7 @@ class _BestSellerWithCategoryScreenState
                                       ],
                                     ),
                                     const SizedBox(height: 10),
+
                                     /// 🔥 Cart Controls
                                     Obx(() {
                                       final cartItem = cartController.cartList

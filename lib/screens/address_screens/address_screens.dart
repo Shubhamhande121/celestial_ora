@@ -81,7 +81,7 @@ class _AddressScreenState extends State<AddressScreen> {
     final CartController cartController = Get.find();
 
     return Scaffold(
-      appBar: const ThemedAppBar(
+      appBar: ThemedAppBar(
         title: 'My Address',
         showBack: true,
       ),
@@ -125,114 +125,159 @@ class _AddressScreenState extends State<AddressScreen> {
                   final isSelected =
                       cartController.selectedAddress.value == address;
 
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    elevation: 4,
-                    shadowColor: Colors.orange.shade200.withOpacity(0.7),
-                    color: isSelected
-                        ? primaryColor.withOpacity(0.95)
-                        : Colors.white,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16.r),
-                      onTap: () {
-                        cartController.selectedAddress.value = address;
-                        if (widget.isBack) Get.back();
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.all(14.w),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // --- Name + Action Buttons ---
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  address['name'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.black,
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    child: Card(
+                      elevation: isSelected ? 8 : 2,
+                      shadowColor: isSelected
+                          ? primaryColor.withOpacity(0.35)
+                          : Colors.black12,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.r),
+                        side: BorderSide(
+                          color: isSelected
+                              ? primaryColor.withOpacity(0.8)
+                              : Colors.grey.shade200,
+                          width: isSelected ? 1.4 : 1,
+                        ),
+                      ),
+                      color: isSelected ? primaryColor : Colors.white,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18.r),
+                        splashColor: Colors.white24,
+                        onTap: () {
+                          cartController.selectedAddress.value = address;
+                          if (widget.isBack) Get.back();
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.all(16.w),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ── Name + Actions ──
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      address['name'] ?? '',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 15.5.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black87,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                Row(
-                                  children: [
-                                    _iconCircle(
-                                      icon: Icons.edit,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.blueAccent,
-                                      onTap: () {
-                                        Get.to(() => EditAddressScreen(
-                                              address: address,
-                                              isAddressEdit: true,
-                                              function: update,
-                                            ));
-                                      },
-                                    ),
-                                    SizedBox(width: 10.w),
-                                    _iconCircle(
-                                      icon: Icons.delete,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.redAccent,
-                                      onTap: () {
-                                        showWarningDialog(
-                                          () {
-                                            Get.back();
-                                            deleteAddress(address['id']);
-                                          },
-                                          "Delete Address",
-                                          "Are you sure you want to delete this address?",
-                                          context,
-                                          () => Navigator.of(context).pop(),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8.h),
-
-                            // --- Phone ---
-                            Text(
-                              "📞 ${address['phone'] ?? ''}",
-                              style: TextStyle(
-                                fontSize: 13.sp,
-                                color: isSelected
-                                    ? Colors.white.withOpacity(0.9)
-                                    : Colors.black87,
+                                  Row(
+                                    children: [
+                                      _actionIcon(
+                                        icon: Icons.edit,
+                                        bg: isSelected
+                                            ? Colors.white.withOpacity(0.2)
+                                            : Colors.blue.withOpacity(0.1),
+                                        iconColor: isSelected
+                                            ? Colors.white
+                                            : Colors.blueAccent,
+                                        onTap: () {
+                                          Get.to(() => EditAddressScreen(
+                                                address: address,
+                                                isAddressEdit: true,
+                                                function: update,
+                                              ));
+                                        },
+                                      ),
+                                      10.w.horizontalSpace,
+                                      _actionIcon(
+                                        icon: Icons.delete_outline,
+                                        bg: isSelected
+                                            ? Colors.white.withOpacity(0.2)
+                                            : Colors.red.withOpacity(0.1),
+                                        iconColor: isSelected
+                                            ? Colors.white
+                                            : Colors.redAccent,
+                                        onTap: () {
+                                          showWarningDialog(
+                                            () {
+                                              Get.back();
+                                              deleteAddress(address['id']);
+                                            },
+                                            "Delete Address",
+                                            "Are you sure you want to delete this address?",
+                                            context,
+                                            () => Navigator.of(context).pop(),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
-                            SizedBox(height: 6.h),
 
-                            // --- Full Address ---
-                            Text(
-                              "📍 ${address['address1'] ?? ''}, ${address['city'] ?? ''} - ${address['pincode'] ?? ''}",
-                              style: TextStyle(
-                                fontSize: 12.5.sp,
-                                color: isSelected
-                                    ? Colors.white.withOpacity(0.85)
-                                    : Colors.black54,
+                              10.h.verticalSpace,
+
+                              // ── Phone ──
+                              Row(
+                                children: [
+                                  Icon(Icons.phone,
+                                      size: 14.sp,
+                                      color: isSelected
+                                          ? Colors.white70
+                                          : Colors.black54),
+                                  6.w.horizontalSpace,
+                                  Text(
+                                    address['phone'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: 13.sp,
+                                      color: isSelected
+                                          ? Colors.white.withOpacity(0.9)
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            SizedBox(height: 12.h),
 
-                            // --- Address Type Chip ---
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Container(
+                              8.h.verticalSpace,
+
+                              // ── Address ──
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.location_on_outlined,
+                                      size: 15.sp,
+                                      color: isSelected
+                                          ? Colors.white70
+                                          : Colors.black54),
+                                  6.w.horizontalSpace,
+                                  Expanded(
+                                    child: Text(
+                                      "${address['address1'] ?? ''}, ${address['city'] ?? ''} - ${address['pincode'] ?? ''}",
+                                      style: TextStyle(
+                                        fontSize: 12.8.sp,
+                                        height: 1.4,
+                                        color: isSelected
+                                            ? Colors.white.withOpacity(0.85)
+                                            : Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              14.h.verticalSpace,
+
+                              // ── Address Type Chip ──
+                              Container(
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 14.w, vertical: 6.h),
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? Colors.white
-                                      : primaryColor.withOpacity(0.9),
+                                      : primaryColor.withOpacity(0.95),
                                   borderRadius: BorderRadius.circular(20.r),
                                 ),
                                 child: Text(
@@ -249,17 +294,166 @@ class _AddressScreenState extends State<AddressScreen> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   );
+                  // return Card(
+                  //   shape: RoundedRectangleBorder(
+                  //     borderRadius: BorderRadius.circular(16.r),
+                  //   ),
+                  //   elevation: 4,
+                  //   shadowColor: Colors.orange.shade200.withOpacity(0.7),
+                  //   color: isSelected
+                  //       ? primaryColor.withOpacity(0.95)
+                  //       : Colors.white,
+                  //   child: InkWell(
+                  //     borderRadius: BorderRadius.circular(16.r),
+                  //     onTap: () {
+                  //       cartController.selectedAddress.value = address;
+                  //       if (widget.isBack) Get.back();
+                  //     },
+                  //     child: Padding(
+                  //       padding: EdgeInsets.all(14.w),
+                  //       child: Column(
+                  //         crossAxisAlignment: CrossAxisAlignment.start,
+                  //         children: [
+                  //           // --- Name + Action Buttons ---
+                  //           Row(
+                  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //             children: [
+                  //               Text(
+                  //                 address['name'] ?? '',
+                  //                 style: TextStyle(
+                  //                   fontSize: 15.sp,
+                  //                   fontWeight: FontWeight.w600,
+                  //                   color: isSelected
+                  //                       ? Colors.white
+                  //                       : Colors.black,
+                  //                 ),
+                  //               ),
+                  //               Row(
+                  //                 children: [
+                  //                   _iconCircle(
+                  //                     icon: Icons.edit,
+                  //                     color: isSelected
+                  //                         ? Colors.white
+                  //                         : Colors.blueAccent,
+                  //                     onTap: () {
+                  //                       Get.to(() => EditAddressScreen(
+                  //                             address: address,
+                  //                             isAddressEdit: true,
+                  //                             function: update,
+                  //                           ));
+                  //                     },
+                  //                   ),
+                  //                   SizedBox(width: 10.w),
+                  //                   _iconCircle(
+                  //                     icon: Icons.delete,
+                  //                     color: isSelected
+                  //                         ? Colors.white
+                  //                         : Colors.redAccent,
+                  //                     onTap: () {
+                  //                       showWarningDialog(
+                  //                         () {
+                  //                           Get.back();
+                  //                           deleteAddress(address['id']);
+                  //                         },
+                  //                         "Delete Address",
+                  //                         "Are you sure you want to delete this address?",
+                  //                         context,
+                  //                         () => Navigator.of(context).pop(),
+                  //                       );
+                  //                     },
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //             ],
+                  //           ),
+                  //           SizedBox(height: 8.h),
+
+                  //           // --- Phone ---
+                  //           Text(
+                  //             "📞 ${address['phone'] ?? ''}",
+                  //             style: TextStyle(
+                  //               fontSize: 13.sp,
+                  //               color: isSelected
+                  //                   ? Colors.white.withOpacity(0.9)
+                  //                   : Colors.black87,
+                  //             ),
+                  //           ),
+                  //           SizedBox(height: 6.h),
+
+                  //           // --- Full Address ---
+                  //           Text(
+                  //             "📍 ${address['address1'] ?? ''}, ${address['city'] ?? ''} - ${address['pincode'] ?? ''}",
+                  //             style: TextStyle(
+                  //               fontSize: 12.5.sp,
+                  //               color: isSelected
+                  //                   ? Colors.white.withOpacity(0.85)
+                  //                   : Colors.black54,
+                  //             ),
+                  //           ),
+                  //           SizedBox(height: 12.h),
+
+                  //           // --- Address Type Chip ---
+                  //           Align(
+                  //             alignment: Alignment.centerLeft,
+                  //             child: Container(
+                  //               padding: EdgeInsets.symmetric(
+                  //                   horizontal: 14.w, vertical: 6.h),
+                  //               decoration: BoxDecoration(
+                  //                 color: isSelected
+                  //                     ? Colors.white
+                  //                     : primaryColor.withOpacity(0.9),
+                  //                 borderRadius: BorderRadius.circular(20.r),
+                  //               ),
+                  //               child: Text(
+                  //                 (address["type_address"]
+                  //                         ?.toString()
+                  //                         .capitalizeFirst) ??
+                  //                     "Other",
+                  //                 style: TextStyle(
+                  //                   fontSize: 12.sp,
+                  //                   fontWeight: FontWeight.w600,
+                  //                   color: isSelected
+                  //                       ? primaryColor
+                  //                       : Colors.white,
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // );
                 });
               },
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _actionIcon(
+      {required IconData icon,
+      required Color bg,
+      required Color iconColor,
+      required VoidCallback onTap}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10.r),
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(8.r),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(10.r),
+        ),
+        child: Icon(icon, size: 16.sp, color: iconColor),
       ),
     );
   }

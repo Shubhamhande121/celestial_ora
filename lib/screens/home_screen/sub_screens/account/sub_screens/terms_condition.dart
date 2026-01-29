@@ -36,7 +36,7 @@ class _TermsConditionState extends State<TermsCondition> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
-      appBar: const ThemedAppBar(
+      appBar:  ThemedAppBar(
         title: 'Terms & Conditions',
         showBack: true,
       ),

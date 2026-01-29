@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:organic_saga/constants/constants.dart';
 import 'package:organic_saga/screens/home_screen/home_controller.dart';
-import 'package:organic_saga/screens/home_screen/sub_screens/account/account.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_controller.dart';
-import 'package:organic_saga/screens/home_screen/sub_screens/cart/cart_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/explore_screen/explore_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/favourites/favourite_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/product_display_screen/WishlistController.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/sub_home_screen/sub_home_screen.dart';
 import 'package:organic_saga/shared_pref/shared_pref.dart';
+import 'sub_screens/account/account.dart';
 
 class RootHomeScreen extends StatefulWidget {
   const RootHomeScreen({Key? key}) : super(key: key);
@@ -34,29 +33,29 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
       "iconFilled": Icons.category,
       "label": "Category"
     },
-    {
-      "iconOutlined": Icons.shopping_cart_outlined,
-      "iconFilled": Icons.shopping_cart,
-      "label": "My Cart"
-    },
+    // {
+    //   "iconOutlined": Icons.shopping_cart_outlined,
+    //   "iconFilled": Icons.shopping_cart,
+    //   "label": "My Cart"
+    // },
     {
       "iconOutlined": Icons.favorite_outline,
       "iconFilled": Icons.favorite,
       "label": "Favourite"
     },
-    // {
-    //   "iconOutlined": Icons.account_circle_outlined,
-    //   "iconFilled": Icons.account_circle,
-    //   "label": "My Account"
-    // },
+    {
+      "iconOutlined": Icons.account_circle_outlined,
+      "iconFilled": Icons.account_circle,
+      "label": "My Account"
+    },
   ];
 
   final List<Widget> listOfScreens = [
     OptimizedSubHomeScreen(),
     ExploreScreen(),
-    Cart(),
+    // Cart(),
     FavouriteScreen(),
-    // Account(),
+    Account(),
   ];
 
   @override
@@ -128,31 +127,31 @@ class _RootHomeScreenState extends State<RootHomeScreen> {
                               size: screenWidth / 13.25,
                               color: isSelected ? primaryColor : Colors.black54,
                             ),
-                            if ((index == 2 &&
-                                    cartController.isCartCount.value > 0) ||
-                                (index == 3 &&
-                                    wishlistController.wishlistCount.value > 0))
-                              Positioned(
-                                top: -6,
-                                right: -3,
-                                child: CircleAvatar(
-                                  radius: 10,
-                                  backgroundColor:
-                                      isSelected ? primaryColor : Colors.grey,
-                                  child: Text(
-                                    index == 3
-                                        ? wishlistController.wishlistCount.value
-                                            .toString()
-                                        : cartController.isCartCount.value
-                                            .toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                            // if ((index == 2 &&
+                            //         cartController.isCartCount.value > 0) ||
+                            //     (index == 3 &&
+                            //         wishlistController.wishlistCount.value > 0))
+                            //   Positioned(
+                            //     top: -6,
+                            //     right: -3,
+                            //     child: CircleAvatar(
+                            //       radius: 10,
+                            //       backgroundColor:
+                            //           isSelected ? primaryColor : Colors.grey,
+                            //       child: Text(
+                            //         index == 3
+                            //             ? wishlistController.wishlistCount.value
+                            //                 .toString()
+                            //             : cartController.isCartCount.value
+                            //                 .toString(),
+                            //         style: const TextStyle(
+                            //           color: Colors.white,
+                            //           fontSize: 12,
+                            //           fontWeight: FontWeight.bold,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
                           ],
                         ),
                         const SizedBox(height: 4),

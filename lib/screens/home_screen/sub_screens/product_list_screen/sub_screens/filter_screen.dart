@@ -64,23 +64,23 @@ class _FilterScreenState extends ConsumerState<FilterScreen> {
         title: "Filters",
         showBack: true,
         onBack: () => Navigator.of(context).pop(),
-        actions: selectedCategories.selectedCategoryIds.isNotEmpty
-            ? [
-                TextButton(
-                  onPressed: () {
-                    ref.read(listOfSelectedCategoriesProvider).clearItems();
-                  },
-                  child: Text(
-                    "Clear All",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ]
-            : null,
+        // actions: selectedCategories.selectedCategoryIds.isNotEmpty
+        //     ? [
+        //         TextButton(
+        //           onPressed: () {
+        //             ref.read(listOfSelectedCategoriesProvider).clearItems();
+        //           },
+        //           child: Text(
+        //             "Clear All",
+        //             style: TextStyle(
+        //               color: Colors.white,
+        //               fontSize: 14.sp,
+        //               fontWeight: FontWeight.w600,
+        //             ),
+        //           ),
+        //         ),
+        //       ]
+        //     : null,
       ),
       body: Container(
         width: double.infinity,

@@ -111,7 +111,12 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-        appBar: const ThemedAppBar(title: 'Favorites'),
+        appBar: ThemedAppBar(
+          title: 'Favorites',
+          onCartTap: () {
+            Get.to(() => FavouriteScreen());
+          },
+        ),
         body: Obx(() {
           if (isLoading.value) {
             return ListView.builder(
@@ -150,17 +155,17 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                       color: Colors.redAccent,
                     ),
                   ),
-                   SizedBox(height: 24.h),
+                  SizedBox(height: 24.h),
                   Text(
                     'Your favorites are empty!',
                     style: TextStyle(fontSize: 20.sp, color: Colors.grey[700]),
                   ),
-                   SizedBox(height: 8.h),
+                  SizedBox(height: 8.h),
                   Text(
                     'Tap the heart on a product to add it here',
                     style: TextStyle(color: Colors.grey[500]),
                   ),
-                   SizedBox(height: 20.h),
+                  SizedBox(height: 20.h),
                   // ElevatedButton.icon(
                   //   onPressed: () {
                   //     Get.to(() => SubHomeScreen());
@@ -330,7 +335,7 @@ class FavouriteItemShimmer extends StatelessWidget {
                   color: Colors.grey[300],
                 ),
               ),
-               SizedBox(width: 12.w),
+              SizedBox(width: 12.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,7 +349,7 @@ class FavouriteItemShimmer extends StatelessWidget {
                         color: Colors.grey[300],
                       ),
                     ),
-                     SizedBox(height: 6.h),
+                    SizedBox(height: 6.h),
                     Shimmer.fromColors(
                       baseColor: Colors.grey[300]!,
                       highlightColor: Colors.grey[100]!,
@@ -357,7 +362,7 @@ class FavouriteItemShimmer extends StatelessWidget {
                   ],
                 ),
               ),
-               SizedBox(width: 8.w),
+              SizedBox(width: 8.w),
               Shimmer.fromColors(
                 baseColor: Colors.grey[300]!,
                 highlightColor: Colors.grey[100]!,

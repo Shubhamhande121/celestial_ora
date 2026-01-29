@@ -84,8 +84,6 @@ class _MyDetailState extends State<MyDetail> {
   @override
   Widget build(BuildContext context) {
     HomeController homeController = Get.find();
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: ThemedAppBar(
@@ -108,18 +106,65 @@ class _MyDetailState extends State<MyDetail> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Column(
+                      children: [
+                        SizedBox(height: 20.h),
+
+                        // Profile Avatar
+                        Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            CircleAvatar(
+                              radius: 48.r,
+                              backgroundColor: primaryColor.withOpacity(0.15),
+                              child: Icon(Icons.person,
+                                  size: 48.sp, color: primaryColor),
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(6.r),
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.edit,
+                                  size: 14.sp, color: Colors.white),
+                            ),
+                          ],
+                        ),
+
+                        12.h.verticalSpace,
+
+                        Text(
+                          homeController.userModel.value.username ??
+                              "Your Name",
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
+                        Text(
+                          homeController.userModel.value.mobile ?? "",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: Colors.black45,
+                          ),
+                        ),
+                      ],
+                    ),
+
                     SizedBox(height: 40.h),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 20),
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(24.r),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12),
                           ),
                         ],
                       ),
@@ -129,12 +174,14 @@ class _MyDetailState extends State<MyDetail> {
                           Text(
                             "Profile Information",
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 15.sp,
                               fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade800,
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          8.h.verticalSpace,
+                          Divider(color: Colors.grey.shade200),
+                          20.h.verticalSpace,
+
                           // Name field
                           TextFormField(
                             controller: _nameController,
@@ -143,11 +190,14 @@ class _MyDetailState extends State<MyDetail> {
                                 : null,
                             decoration: InputDecoration(
                               labelText: "Full Name",
-                              prefixIcon: const Icon(Icons.person_outline),
+                              prefixIcon:
+                                  Icon(Icons.person_outline, size: 20.sp),
                               filled: true,
-                              fillColor: Colors.grey.shade50,
+                              fillColor: const Color(0xFFF6F7F9),
+                              contentPadding:
+                                  EdgeInsets.symmetric(vertical: 14.h),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(14.r),
                                 borderSide: BorderSide.none,
                               ),
                             ),
@@ -168,9 +218,11 @@ class _MyDetailState extends State<MyDetail> {
                               labelText: "Email Address",
                               prefixIcon: const Icon(Icons.email_outlined),
                               filled: true,
-                              fillColor: Colors.grey.shade50,
+                              fillColor: const Color(0xFFF6F7F9),
+                              contentPadding:
+                                  EdgeInsets.symmetric(vertical: 14.h),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(14.r),
                                 borderSide: BorderSide.none,
                               ),
                             ),
@@ -184,14 +236,13 @@ class _MyDetailState extends State<MyDetail> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          elevation: 8,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18.0),
-                          ),
-                          minimumSize: const Size(double.infinity, 55),
-                        ),
+                            elevation: 8,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0),
+                            ),
+                            minimumSize: const Size(double.infinity, 10)),
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             updateProfile();

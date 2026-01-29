@@ -36,7 +36,7 @@ class _AboutUsState extends State<AboutUs> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA), // soft background
-      appBar: const ThemedAppBar(
+      appBar:  ThemedAppBar(
         title: 'About Us',
         showBack: true,
       ),

@@ -124,46 +124,46 @@ class _ProductListScreenState extends State<ProductListScreen> {
       appBar: ThemedAppBar(
         title: widget.categoryDetails['name'],
         showBack: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) {
-                  return FractionallySizedBox(
-                    heightFactor: 0.9,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      child: SafeArea(
-                        child: SearchBottomSheet(
-                          scrollController: ScrollController(),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-            icon: const Icon(Icons.search, color: Colors.white),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FilterScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.tune, color: Colors.white),
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {
+        //       showModalBottomSheet(
+        //         context: context,
+        //         isScrollControlled: true,
+        //         backgroundColor: Colors.transparent,
+        //         builder: (context) {
+        //           return FractionallySizedBox(
+        //             heightFactor: 0.9,
+        //             child: Container(
+        //               decoration: const BoxDecoration(
+        //                 color: Colors.white,
+        //                 borderRadius: BorderRadius.vertical(
+        //                   top: Radius.circular(20),
+        //                 ),
+        //               ),
+        //               child: SafeArea(
+        //                 child: SearchBottomSheet(
+        //                   scrollController: ScrollController(),
+        //                 ),
+        //               ),
+        //             ),
+        //           );
+        //         },
+        //       );
+        //     },
+        //     icon: const Icon(Icons.search, color: Colors.white),
+        //   ),
+        //   IconButton(
+        //     onPressed: () {
+        //       Navigator.of(context).push(
+        //         MaterialPageRoute(
+        //           builder: (context) => const FilterScreen(),
+        //         ),
+        //       );
+        //     },
+        //     icon: const Icon(Icons.tune, color: Colors.white),
+        //   ),
+        // ],
       ),
       body: RefreshIndicator(
         onRefresh: _refreshProducts,
@@ -386,95 +386,208 @@ class _ProductListScreenState extends State<ProductListScreen> {
       final height = isGrid ? 28.h : 36.h;
 
       return GestureDetector(
-        onTap: () async {
-          // Get fresh value
-          final currentKey = '$productId-$variantId';
-          final currentIsInCart =
-              cartController.localCartItems.containsKey(currentKey) &&
-                  (cartController.localCartItems[currentKey] ?? 0) > 0;
+          onTap: () async {
+            // Get fresh value
+            final currentKey = '$productId-$variantId';
+            final currentIsInCart =
+                cartController.localCartItems.containsKey(currentKey) &&
+                    (cartController.localCartItems[currentKey] ?? 0) > 0;
 
-          if (currentIsInCart) {
-            // Remove from cart
-            cartController.localCartItems.remove(currentKey);
-            // The .obs map will automatically notify Obx
+            if (currentIsInCart) {
+              // Remove from cart
+              cartController.localCartItems.remove(currentKey);
+              // The .obs map will automatically notify Obx
 
-            // Also remove from server cart if exists
-            final cartItem = cartController.cartList.firstWhereOrNull(
-              (item) =>
-                  item['product_id']?.toString() == productId &&
-                  item['pv_id']?.toString() == variantId,
-            );
+              // Also remove from server cart if exists
+              final cartItem = cartController.cartList.firstWhereOrNull(
+                (item) =>
+                    item['product_id']?.toString() == productId &&
+                    item['pv_id']?.toString() == variantId,
+              );
 
-            if (cartItem != null && cartItem['cart_id'] != null) {
-              await cartController
-                  .removeFromCart(cartItem['cart_id'].toString());
+              if (cartItem != null && cartItem['cart_id'] != null) {
+                await cartController
+                    .removeFromCart(cartItem['cart_id'].toString());
+              }
+            } else {
+              // Add to cart
+              await cartController.addToCart(productId, 1, variantId, context);
             }
-          } else {
-            // Add to cart
-            await cartController.addToCart(productId, 1, variantId, context);
-          }
-        },
-        child: Container(
-          height: height,
-          width: isGrid ? double.infinity : null,
-          decoration: BoxDecoration(
-            gradient: isInCart
-                ? LinearGradient(
-                    colors: [Colors.red.shade50, Colors.white],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : LinearGradient(
-                    colors: [primaryColor, primaryColor.withOpacity(0.8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            borderRadius: BorderRadius.circular(isGrid ? 8.r : 10.r),
-            border: isInCart
-                ? Border.all(color: Colors.red.shade300, width: 1.5)
-                : null,
-            boxShadow: isInCart
-                ? [
-                    BoxShadow(
-                      color: Colors.red.withOpacity(0.1),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            height: height,
+            width: isGrid ? double.infinity : null,
+            padding: EdgeInsets.symmetric(
+              horizontal: isGrid ? 10.w : 14.w,
+              vertical: isGrid ? 6.h : 8.h,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(isGrid ? 10.r : 14.r),
+
+              // ---- Background ----
+              gradient: isInCart
+                  ? null
+                  : LinearGradient(
+                      colors: [
+                        primaryColor,
+                        primaryColor.withOpacity(0.85),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: primaryColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-          ),
-          child: Center(
+
+              color: isInCart ? Colors.red.shade50 : null,
+
+              // ---- Border ----
+              border: Border.all(
+                color: isInCart ? Colors.red.shade300 : Colors.transparent,
+                width: 1.4,
+              ),
+
+              // ---- Shadow ----
+              boxShadow: [
+                BoxShadow(
+                  color: isInCart
+                      ? Colors.red.withOpacity(0.12)
+                      : primaryColor.withOpacity(0.35),
+                  blurRadius: isInCart ? 6 : 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   isInCart
-                      ? Icons.remove_shopping_cart
-                      : Icons.add_shopping_cart,
+                      ? Icons.check_circle_rounded
+                      : Icons.add_shopping_cart_outlined,
+                  size: isGrid ? 14.sp : 16.sp,
                   color: isInCart ? Colors.red.shade600 : Colors.white,
-                  size: isGrid ? 12.sp : 16.sp,
                 ),
-                SizedBox(width: 6.w),
+                6.w.horizontalSpace,
                 Text(
-                  isInCart ? "Remove" : "Add to cart",
+                  isInCart ? "Added" : "Add",
                   style: TextStyle(
-                    color: isInCart ? Colors.red.shade600 : Colors.white,
-                    fontSize: isGrid ? 10.sp : 10.sp,
+                    fontSize: isGrid ? 10.sp : 11.sp,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
+                    letterSpacing: 0.4,
+                    color: isInCart ? Colors.red.shade600 : Colors.white,
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-      );
+          )
+
+          //  Container(
+          //     height: height,
+          //     width: isGrid ? double.infinity : null,
+          //     decoration: BoxDecoration(
+          //       gradient: isInCart
+          //           ? LinearGradient(
+          //               colors: [Colors.red.shade50, Colors.white],
+          //               begin: Alignment.topLeft,
+          //               end: Alignment.bottomRight,
+          //             )
+          //           : LinearGradient(
+          //               colors: [primaryColor, primaryColor.withOpacity(0.8)],
+          //               begin: Alignment.topLeft,
+          //               end: Alignment.bottomRight,
+          //             ),
+          //       borderRadius: BorderRadius.circular(isGrid ? 8.r : 10.r),
+          //       border: isInCart
+          //           ? Border.all(color: Colors.red.shade300, width: 1.5)
+          //           : null,
+          //       boxShadow: isInCart
+          //           ? [
+          //               BoxShadow(
+          //                 color: Colors.red.withOpacity(0.1),
+          //                 blurRadius: 6,
+          //                 offset: Offset(0, 2),
+          //               ),
+          //             ]
+          //           : [
+          //               BoxShadow(
+          //                 color: primaryColor.withOpacity(0.3),
+          //                 blurRadius: 8,
+          //                 offset: Offset(0, 3),
+          //               ),
+          //             ],
+          //     ),
+          //     child: Container(
+          //       padding: EdgeInsets.symmetric(
+          //         horizontal: isGrid ? 10.w : 14.w,
+          //         vertical: isGrid ? 6.h : 8.h,
+          //       ),
+          //       decoration: BoxDecoration(
+          //         color: isInCart ? Colors.red.shade50 : primaryColor,
+          //         borderRadius: BorderRadius.circular(30.r),
+          //         border: Border.all(
+          //           color: isInCart ? Colors.red.shade300 : primaryColor,
+          //           width: 1,
+          //         ),
+          //         boxShadow: [
+          //           if (!isInCart)
+          //             BoxShadow(
+          //               color: primaryColor.withOpacity(0.35),
+          //               blurRadius: 8,
+          //               offset: const Offset(0, 4),
+          //             ),
+          //         ],
+          //       ),
+          //       child: Row(
+          //         mainAxisSize: MainAxisSize.min,
+          //         children: [
+          //           Icon(
+          //             isInCart
+          //                 ? Icons.remove_shopping_cart_outlined
+          //                 : Icons.add_shopping_cart_outlined,
+          //             size: isGrid ? 14.sp : 16.sp,
+          //             color: isInCart ? Colors.red.shade600 : Colors.white,
+          //           ),
+          //           6.w.horizontalSpace,
+          //           Text(
+          //             isInCart ? "Remove" : "Add",
+          //             style: TextStyle(
+          //               fontSize: isGrid ? 10.sp : 11.sp,
+          //               fontWeight: FontWeight.w600,
+          //               color: isInCart ? Colors.red.shade600 : Colors.white,
+          //               letterSpacing: 0.4,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     )
+
+          //     //  Center(
+          //     //   child: Row(
+          //     //     mainAxisAlignment: MainAxisAlignment.center,
+          //     //     children: [
+          //     //       Icon(
+          //     //         isInCart
+          //     //             ? Icons.remove_shopping_cart
+          //     //             : Icons.add_shopping_cart,
+          //     //         color: isInCart ? Colors.red.shade600 : Colors.white,
+          //     //         size: isGrid ? 12.sp : 16.sp,
+          //     //       ),
+          //     //       SizedBox(width: 6.w),
+          //     //       Text(
+          //     //         isInCart ? "Remove" : "Add to cart",
+          //     //         style: TextStyle(
+          //     //           color: isInCart ? Colors.red.shade600 : Colors.white,
+          //     //           fontSize: isGrid ? 10.sp : 10.sp,
+          //     //           fontWeight: FontWeight.w600,
+          //     //           letterSpacing: 0.3,
+          //     //         ),
+          //     //       ),
+          //     //     ],
+          //     //   ),
+          //     // ),
+          //     ),
+
+          );
     });
   }
   // Widget _buildAddToCartButton(String productId, String variantId) {

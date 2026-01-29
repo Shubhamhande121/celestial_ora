@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 import 'package:organic_saga/components/custom_app_bar.dart';
@@ -10,6 +11,8 @@ import 'package:organic_saga/constants/baseUrl.dart';
 import 'package:organic_saga/constants/constants.dart';
 import 'package:organic_saga/screens/home_screen/search_screens/search_screen.dart';
 import 'package:organic_saga/screens/home_screen/sub_screens/product_list_screen/product_list_screen.dart';
+
+import '../cart/cart_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({Key? key}) : super(key: key);
@@ -21,9 +24,7 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   Future<List> getCategories() async {
     var request = http.MultipartRequest(
-      'GET',
-      Uri.parse('$baseUrl/Auth/category_list_fetch'),
-    );
+        'GET', Uri.parse('$baseUrl/Auth/category_list_fetch'));
 
     http.StreamedResponse response = await request.send();
 
@@ -87,7 +88,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: const ThemedAppBar(title: "Explore"),
+      appBar: ThemedAppBar(
+        title: "Explore",
+        onCartTap: () {
+          Get.to(() => Cart());
+        },
+      ),
       backgroundColor: Colors.grey.shade100,
       body: Column(
         children: [

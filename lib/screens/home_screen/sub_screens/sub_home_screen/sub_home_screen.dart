@@ -21,6 +21,8 @@ import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:marquee/marquee.dart';
 
+import '../cart/cart_screen.dart';
+
 class OptimizedSubHomeScreen extends StatefulWidget {
   const OptimizedSubHomeScreen({Key? key}) : super(key: key);
 
@@ -129,31 +131,61 @@ class _OptimizedSubHomeScreenState extends State<OptimizedSubHomeScreen> {
       resizeToAvoidBottomInset: false, // ✅ FIX: Prevents unnecessary resizing
       appBar: ThemedAppBar(
         title: "Celestial Ora",
-        cartCount: cartController.cartList.length,
+
+        // onAccountTap: () => Get.to(Account()),
+        actions: true,
         onCartTap: () {
-          // Get.to(() => CartScreen());
+          Get.to(() => Cart());
         },
+
         onSearchTap: () {
-          // open search screen
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (context) {
-              return Container(
-                height: MediaQuery.of(context).size.height * 0.9,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20.r),
-                    topRight: Radius.circular(20.r),
-                  ),
-                ),
-                child: SearchBottomSheet(),
+            builder: (_) {
+              return DraggableScrollableSheet(
+                initialChildSize: 0.85,
+                minChildSize: 0.5,
+                maxChildSize: 0.95,
+                builder: (_, scrollController) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24.r),
+                      ),
+                    ),
+                    child: SearchBottomSheet(
+                      scrollController: scrollController,
+                    ),
+                  );
+                },
               );
             },
           );
         },
+
+        // onSearchTap: () {
+        //   showModalBottomSheet(
+        //     context: context,
+        //     isScrollControlled: true,
+        //     backgroundColor: Colors.transparent,
+        //     builder: (context) {
+        //       return Container(
+        //         height: MediaQuery.of(context).size.height * 0.9,
+        //         decoration: BoxDecoration(
+        //           color: Colors.white,
+        //           borderRadius: BorderRadius.only(
+        //             topLeft: Radius.circular(20.r),
+        //             topRight: Radius.circular(20.r),
+        //           ),
+        //         ),
+        //         child: SearchBottomSheet(),
+        //       );
+        //     },
+        //   );
+        // },
       ),
 
       //  ThemedAppBar(

@@ -42,7 +42,7 @@ class _PromoCodeState extends State<PromoCode> {
     CartController cartController = Get.find();
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: const ThemedAppBar(
+      appBar: ThemedAppBar(
         title: 'Promo Code',
         showBack: true, // ✅ replaces the manual IconButton
       ),

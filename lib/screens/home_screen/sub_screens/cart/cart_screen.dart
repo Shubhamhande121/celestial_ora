@@ -36,7 +36,7 @@ class _CartState extends State<Cart> {
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: ThemedAppBar(title: 'My Cart'),
+      appBar: ThemedAppBar(title: 'My Cart', showBack: true),
       body: Column(
         children: [
           Expanded(
